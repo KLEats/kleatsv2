@@ -1,0 +1,963 @@
+/* Add these variables at the top of your CSS file */
+:root {
+  --background-light: #ffffff;
+  --text-light: #333333;
+  --border-light: #eeeeee;
+  --card-bg-light: #ffffff;
+  --primary-color: #ff4b4b;
+  --secondary-bg-light: #f8f9fa;
+  
+  /* Dark mode colors */
+  --background-dark: #121212;
+  --text-dark: #ffffff;
+  --border-dark: #2d2d2d;
+  --card-bg-dark: #1e1e1e;
+  --secondary-bg-dark: #2d2d2d;
+}
+
+/* Dark Mode Styles */
+.dark-mode {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+.dark-mode .profile-nav,
+.dark-mode .action-button,
+.dark-mode .setting-item,
+.dark-mode .order-status,
+.dark-mode .orders-dropdown {
+  background-color: var(--card-bg-dark);
+  border-color: var(--border-dark);
+}
+
+.dark-mode .order-item {
+  background-color: var(--secondary-bg-dark);
+}
+
+/* Update existing styles with rounded corners */
+.order-status,
+.membership-card,
+.action-button,
+.setting-item,
+.order-item,
+.logout-btn,
+.switch-account-btn {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* New Toggle Switch Styles */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 28px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-label i {
+  font-size: 18px;
+  color: var(--primary-color);
+}
+
+/* Dark mode specific updates */
+.dark-mode .user-details p,
+.dark-mode .order-details,
+.dark-mode .stat-label,
+.dark-mode .stat-period {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-mode .edit-profile {
+  background: var(--secondary-bg-dark);
+  color: var(--text-dark);
+}
+
+.dark-mode .switch-account-btn {
+  background: var(--secondary-bg-dark);
+  color: var(--text-dark);
+}
+
+.dark-mode .membership-card {
+  background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+}
+
+/* Update existing sections for dark mode */
+.action-button,
+.setting-item,
+.order-status {
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.orders-dropdown {
+  border-radius: 12px;
+  margin-top: 8px;
+  transition: background-color 0.3s;
+}
+
+/* Mobile Responsive Updates */
+@media screen and (max-width: 768px) {
+  .order-status,
+  .membership-card,
+  .action-button,
+  .setting-item,
+  .order-item,
+  .logout-btn,
+  .switch-account-btn {
+    border-radius: 10px;
+  }
+
+  .toggle-switch {
+    width: 48px;
+    height: 26px;
+  }
+
+  .toggle-slider:before {
+    height: 18px;
+    width: 18px;
+  }
+
+  input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+  }
+}
+
+/* Animation for dark mode transition */
+.profile-container,
+.profile-nav,
+.action-button,
+.setting-item,
+.order-status,
+.orders-dropdown,
+.order-item {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.profile-container {
+  min-height: 100vh;
+  background: #ffffff;
+  padding-top: 60px;
+}
+
+.profile-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-profile {
+  padding: 8px 16px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.profile-content {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* User Info Section */
+.user-info-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: #ff4b4b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.user-details h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.user-details p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Order Status */
+.order-status {
+  background: white;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #eee;
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.status-badge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.order-details {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Membership Card */
+.membership-card {
+  width: 100%;
+  padding: 16px;
+  background: #ff4b4b;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  text-align: left;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+
+.primary-text {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.secondary-text {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* Actions Section */
+.actions-section {
+  margin-bottom: 24px;
+}
+
+.action-button {
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 1px;
+}
+
+.action-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-content i {
+  color: #ff4b4b;
+  font-size: 18px;
+}
+
+.rotate {
+  transform: rotate(90deg);
+}
+
+/* Orders Dropdown */
+.orders-dropdown {
+  background: #f8f9fa;
+  padding: 16px;
+  margin-bottom: 1px;
+}
+
+.order-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  margin: 4px 0;
+}
+
+.stat-period {
+  font-size: 12px;
+  color: #888;
+}
+
+.recent-orders h4 {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.order-item {
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.item-details h5 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.item-details p {
+  font-size: 12px;
+  color: #666;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #ff4b4b;
+}
+
+/* Settings Section */
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.setting-item {
+  padding: 16px;
+  background: white;
+  border: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1px;
+}
+
+/* Account Actions */
+.account-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logout-btn,
+.switch-account-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logout-btn {
+  background: #fff0f0;
+  color: #ff4b4b;
+}
+
+.switch-account-btn {
+  background: #f0f0f0;
+  color: #666;
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 768px) {
+  .profile-container {
+    padding-top: 56px;
+  }
+
+  .profile-nav {
+    height: 56px;
+    padding: 0 12px;
+  }
+
+  .profile-content {
+    padding: 12px;
+  }
+
+  .user-info-section {
+    margin-bottom: 20px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .user-details h2 {
+    font-size: 16px;
+  }
+
+  .user-details p {
+    font-size: 13px;
+  }
+
+  .action-button {
+    padding: 14px;
+  }
+
+  .orders-dropdown {
+    padding: 12px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .order-item {
+    padding: 10px;
+  }
+}
+
+/* iOS Safe Area Support */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .profile-container {
+    padding-top: calc(60px + env(safe-area-inset-top));
+  }
+
+  .profile-nav {
+    padding-top: env(safe-area-inset-top);
+    height: calc(60px + env(safe-area-inset-top));
+  }
+}
+
+/* Add these new styles */
+
+.dropdown-content {
+  background: var(--card-bg-light);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  margin-top: 1px;
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+.dark-mode .dropdown-content {
+  background: var(--card-bg-dark);
+  border-color: var(--border-dark);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+.stat-card {
+  background: var(--secondary-bg-light);
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dark-mode .stat-card {
+  background: var(--secondary-bg-dark);
+}
+
+.stat-card i {
+  font-size: 24px;
+  color: var(--primary-color);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-amount {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.dark-mode .stat-amount {
+  color: var(--text-dark);
+}
+
+/* Recent Items */
+.recent-items {
+  padding: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.dark-mode .recent-items {
+  border-color: var(--border-dark);
+}
+
+.recent-items h4 {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--secondary-bg-light);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.dark-mode .item {
+  background: var(--secondary-bg-dark);
+}
+
+.item-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info h5 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.item-info p {
+  font-size: 12px;
+  color: var(--text-light);
+  opacity: 0.7;
+}
+
+.item-price {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Payment Methods */
+.payment-methods {
+  padding: 16px;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--secondary-bg-light);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.dark-mode .payment-method {
+  background: var(--secondary-bg-dark);
+}
+
+.method-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.method-info {
+  flex: 1;
+}
+
+.method-info h5 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.method-info p {
+  font-size: 12px;
+  color: var(--text-light);
+  opacity: 0.7;
+}
+
+.method-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 4px;
+}
+
+/* Payment Summary */
+.payment-summary {
+  padding: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.dark-mode .payment-summary {
+  border-color: var(--border-dark);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.summary-item:last-child {
+  margin-bottom: 0;
+}
+
+/* View All Button */
+.view-all-button {
+  width: 100%;
+  padding: 16px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border-light);
+  color: var(--primary-color);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark-mode .view-all-button {
+  border-color: var(--border-dark);
+}
+
+.view-all-button:hover {
+  background: var(--secondary-bg-light);
+}
+
+.dark-mode .view-all-button:hover {
+  background: var(--secondary-bg-dark);
+}
+
+.view-all-button i {
+  transition: transform 0.2s;
+}
+
+.view-all-button:hover i {
+  transform: translateX(4px);
+}
+
+/* Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 768px) {
+  .stats-grid {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-amount {
+    font-size: 18px;
+  }
+
+  .recent-items,
+  .payment-methods,
+  .payment-summary {
+    padding: 12px;
+  }
+
+  .item,
+  .payment-method {
+    padding: 10px;
+  }
+
+  .view-all-button {
+    padding: 14px;
+  }
+}
+
+/* Add these new styles to your Profile.css */
+
+.action-group {
+  margin-bottom: 16px;
+}
+
+.recent-preview {
+  background: #f8f8f8;
+  border: 1px solid #eee;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  animation: slideDown 0.3s ease;
+}
+
+.recent-item {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+.item-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.payment-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #ff4b4b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.item-details {
+  flex: 1;
+}
+
+.item-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.item-main-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #000;
+}
+
+.item-sub-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-sub-info p {
+  font-size: 12px;
+  color: #666;
+}
+
+.status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.status.delivered {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.success {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.view-all-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: #ff4b4b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+  background: rgba(255, 75, 75, 0.05);
+}
+
+.view-all-btn i {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.view-all-btn:hover i {
+  transform: translateX(4px);
+}
+
+/* Dark mode support */
+.dark-mode .recent-preview {
+  background: #1e1e1e;
+  border-color: #2d2d2d;
+}
+
+.dark-mode .recent-item {
+  background: #2d2d2d;
+  border-color: #3d3d3d;
+}
+
+.dark-mode .item-main-info h4 {
+  color: #fff;
+}
+
+.dark-mode .item-sub-info p {
+  color: #999;
+}
+
+@media screen and (max-width: 768px) {
+  .recent-item {
+    padding: 10px 12px;
+  }
+
+  .item-image,
+  .payment-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .item-main-info h4 {
+    font-size: 13px;
+  }
+
+  .item-sub-info p,
+  .status {
+    font-size: 11px;
+  }
+
+  .view-all-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+/* Add this new style for the animation */
+.recent-preview {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

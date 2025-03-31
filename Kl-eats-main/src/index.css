@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+*{
+  padding: 0px;
+  margin: 0px;
+  box-sizing:border-box;
+  font-family: outfit;
+}
+body{
+  min-height:100vh;
+  overflow-x: hidden;
+}
+a{
+  text-decoration: none;
+  color: inherit;
+}
+.app{
+  width: 80%;
+  margin:auto;
+}
+
+@keyframes fadeIn {
+  0%{
+    opacity: 0;
+  }
+  100%{
+    opacity: 1;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Adjust this value based on your navbar height */
+}
+
+/* Add these styles to ensure sections are visible */
+#members-section, #footer {
+  scroll-margin-top: 80px; /* Same as scroll-padding-top */
+}
