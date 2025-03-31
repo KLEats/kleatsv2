@@ -14,13 +14,13 @@ Follow these steps to set up KL Eats on your local machine:
 ### 1️⃣ Clone the Repository
 You can either **download the ZIP file** or use Git to clone the repository:
 ```bash
-  git clone <repository-url>
+  git clon https://github.com/raunit45/V2.Kleats/tree/main
 ```
 
 ### 2️⃣ Navigate to the Project Folder
 Move into the **KL Eats** main directory:
 ```bash
-  cd kl-eats-main
+  cd Kl-eats-main
 ```
 
 ### 3️⃣ Install Dependencies
