@@ -9,7 +9,10 @@ import Register from './pages/Register/Register';
 import Canteens from './pages/Canteens/Canteens';
 import Profile from './pages/Profile/Profile';
 import Team from './components/team/team';
-import Orders from './pages/Orders/Orders';
+import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs"; 
+
+
 
 export const CartContext = createContext();
 
@@ -64,7 +67,8 @@ const App = () => {
           <Route path='/canteens' element={<Canteens />} />
           <Route path='/profile' element={<Profile />} />
           <Route path='/team' element={<Team />} />
-          <Route path='/orders' element={<Orders />} />
+          <Route path="/about" element={<AboutUs />}/>
+          <Route path="/contact" element={<ContactUs />} />
         </Routes>
       </div>
     </CartContext.Provider>
