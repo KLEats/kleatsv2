@@ -2,5 +2,26 @@
   "dependencies": {
     "react-icons": "^5.5.0",
     "vercel": "^41.4.1"
-  }
+  },
+  "name": "v2.kleats",
+  "version": "1.0.0",
+  "description": "KL Eats is a **food pre-ordering platform** for **KL University**, designed to make ordering food easier and faster. The platform supports the **community** by connecting students and vendors while improving the overall food ordering experience.\r **Supported by KLGLUG**\r KL Eats is proudly supported by KLGLUG (KL University Linux Users Group), a student-led group dedicated to the promotion of open-source technologies and collaborative projects.\r ## 🚀 Features\r - **Pre-order food** to avoid long queues.\r - **Supports community engagement** by connecting local vendors and students.\r - **User-friendly design** with a smooth ordering process.",
+  "main": "index.js",
+  "devDependencies": {
+    "vite": "^6.2.4"
+  },
+  "scripts": {
+    "dev": "vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MurthyReddySharanya/V2.Kleats.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MurthyReddySharanya/V2.Kleats/issues"
+  },
+  "homepage": "https://github.com/MurthyReddySharanya/V2.Kleats#readme"
 }
