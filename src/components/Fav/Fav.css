@@ -1,0 +1,188 @@
+.fav-section {
+  padding: 20px 16px;
+  background: #fff;
+}
+
+.fav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.fav-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.slider-controls {
+  display: flex;
+  gap: 12px;
+}
+
+.slider-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e0e0e0;
+  background: white;
+  color: #000000;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.slider-btn:hover {
+  background: #f2f2f2;
+  border-color: #d0d0d0;
+}
+
+.fav-slider {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.fav-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.fav-card {
+  flex: 0 0 220px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  transition: transform 0.3s ease;
+}
+
+.fav-card:hover {
+  transform: translateY(-4px);
+}
+
+.fav-image {
+  position: relative;
+  height: 140px;
+}
+
+.fav-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-fav {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  color: #ff4b4b;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.remove-fav:hover {
+  background: #ff4b4b;
+  color: white;
+}
+
+.fav-info {
+  padding: 12px;
+}
+
+.fav-info h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #282c3f;
+  margin-bottom: 4px;
+}
+
+.restaurant {
+  color: #686b78;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.rating-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.rating {
+  color: #3d9b6d;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.price {
+  font-weight: 600;
+  color: #000000;
+}
+
+.rating-price .price {
+  font-weight: 600;
+  color: #000000;
+}
+
+.order-now {
+  width: 100%;
+  padding: 8px;
+  background: #ff4b4b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.order-now:hover {
+  background: #e03e3e;
+}
+
+@media screen and (max-width: 768px) {
+  .fav-section {
+    padding: 16px 12px;
+  }
+
+  .fav-header h2 {
+    font-size: 18px;
+  }
+
+  .fav-card {
+    flex: 0 0 180px;
+  }
+
+  .fav-image {
+    height: 120px;
+  }
+
+  .fav-info h3 {
+    font-size: 14px;
+  }
+
+  .restaurant, .rating, .order-now {
+    font-size: 12px;
+  }
+}

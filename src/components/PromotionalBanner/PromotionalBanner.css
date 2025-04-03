@@ -1,0 +1,165 @@
+.promotional-banner {
+  background: linear-gradient(135deg, #FF4B4B 0%, #ff3333 100%);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 15px auto;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 95%;
+  max-width: 1400px;
+  position: relative;
+}
+
+.banner-slider {
+  display: flex;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+.banner-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dot.active {
+  background: white;
+}
+
+.banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  min-width: 100%;
+  flex-shrink: 0;
+}
+
+.banner-text {
+  flex: 1;
+  color: white;
+  padding-left: 20px;
+}
+
+.banner-text h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+}
+
+.banner-text p {
+  font-size: 16px;
+  margin: 5px 0;
+  opacity: 0.9;
+}
+
+.extra-offer {
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.order-now-btn {
+  background: white;
+  color: #FF4B4B;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.order-now-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.banner-image {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: 20px;
+}
+
+.banner-image img {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .promotional-banner {
+    padding: 10px;
+    margin: 10px auto;
+  }
+
+  .banner-content {
+    flex-direction: column;
+    text-align: center;
+    padding: 0;
+  }
+
+  .banner-text {
+    order: 1;
+    padding: 0 10px;
+  }
+
+  .banner-image {
+    order: 0;
+    margin-bottom: 15px;
+    padding: 0;
+  }
+
+  .banner-text h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .banner-text p {
+    font-size: 14px;
+    margin: 4px 0;
+  }
+
+  .extra-offer {
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .order-now-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+
+  .banner-image img {
+    max-height: 180px;
+    width: auto;
+  }
+
+  .banner-dots {
+    margin-top: 10px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+  }
+}

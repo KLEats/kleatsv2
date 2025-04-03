@@ -1,0 +1,91 @@
+.footer {
+    background: #fff;
+    padding: 40px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    font-family: 'Poppins', sans-serif;  /* Assuming this is your font-family */
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.footer p {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin: 0;
+}
+
+.footer-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.footer-links a {
+    color: #333;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #c63838;
+    transition: width 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #c63838;
+}
+
+.footer-links a:hover::after {
+    width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+    .footer {
+        padding: 30px 0;
+    }
+
+    .footer-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .footer-links {
+        gap: 20px;
+        justify-content: center;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .footer {
+        padding: 25px 0;
+    }
+
+    .footer-links {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .footer p, .footer-links a {
+        font-size: 0.85rem;
+    }
+}
+  

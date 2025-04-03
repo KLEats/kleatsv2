@@ -1,0 +1,211 @@
+.team-page {
+  min-height: 100vh;
+  padding: 20px;
+  background-color: white;
+}
+
+.team-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #eee;
+}
+
+.team-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.team-title {
+  text-align: center;
+  color: #333;
+  font-size: 2.5rem;
+  margin-bottom: 50px;
+}
+
+.section-title {
+  text-align: center;
+  color: #333;
+  font-size: 2rem;
+  margin: 60px 0 40px;
+}
+
+/* Mentor Styles */
+.mentor-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.mentor-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.mentor-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Team Grid */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+.team-card {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Common Styles */
+.member-image-wrapper {
+  position: relative;
+  padding-top: 100%;
+  background: #f0f0f0;
+}
+
+.member-image-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-info {
+  padding: 20px 0;
+  text-align: center;
+}
+
+.member-info h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.member-info h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.role {
+  color: #ff4b4b;
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.social-links a {
+  color: #666;
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+
+.social-links a:hover {
+  transform: translateY(-2px);
+}
+
+.social-links a:hover .fa-linkedin {
+  color: #0077b5;
+}
+
+.social-links a:hover .fa-instagram {
+  color: #e4405f;
+}
+
+.social-links a:hover .fa-github {
+  color: #333;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .team-page {
+    padding: 10px;
+  }
+
+  .team-title {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    margin: 40px 0 30px;
+  }
+
+  .mentor-card {
+    max-width: 320px;
+  }
+
+  .team-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .team-container {
+    padding: 10px;
+  }
+
+  .team-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 15px;
+  }
+
+  .member-info h2 {
+    font-size: 1.3rem;
+  }
+
+  .member-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .role {
+    font-size: 0.8rem;
+  }
+
+  .social-links {
+    gap: 12px;
+  }
+
+  .social-links a {
+    font-size: 18px;
+  }
+}
+
