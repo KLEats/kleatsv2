@@ -11,6 +11,9 @@ import Profile from './pages/Profile/Profile';
 import Team from './components/team/team';
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs"; 
+import Terms from "./pages/Terms";  
+import Refund from "./pages/Refund"; 
+
 
 
 
@@ -69,6 +72,8 @@ const App = () => {
           <Route path='/team' element={<Team />} />
           <Route path="/about" element={<AboutUs />}/>
           <Route path="/contact" element={<ContactUs />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/refund" element={<Refund />} />
         </Routes>
       </div>
     </CartContext.Provider>

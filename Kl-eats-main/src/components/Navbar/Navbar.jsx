@@ -50,6 +50,7 @@ const Navbar = () => {
           {isMenuOpen && (
             <div className="dropdown-content">
               <Link to="/contact" onClick={() => setIsMenuOpen(false)}>Contact Us</Link>
+              <Link to="/refund" onClick={() => setIsMenuOpen(false)}>Refund Policy</Link>
               <Link to="/team" onClick={() => setIsMenuOpen(false)}>Our Team</Link>
               <Link to="/about" onClick={() => setIsMenuOpen(false)}>About Us</Link>
               <Link to="/help" onClick={() => setIsMenuOpen(false)}>Help & Support</Link>
