@@ -9,6 +9,24 @@ export interface Canteen {
   poster: string
 }
 
+// Utility function to check if canteen is currently open
+export function isCanteenOpen(fromTime: string, toTime: string): boolean {
+  if (!fromTime || !toTime) return true // If no time specified, assume always open
+  
+  const now = new Date()
+  const currentTime = now.getHours() * 100 + now.getMinutes() // Convert to HHMM format
+  
+  const fromTimeNum = parseInt(fromTime.replace(':', ''))
+  const toTimeNum = parseInt(toTime.replace(':', ''))
+  
+  // Handle cases where opening time is after closing time (e.g., 22:00 to 06:00)
+  if (fromTimeNum > toTimeNum) {
+    return currentTime >= fromTimeNum || currentTime <= toTimeNum
+  }
+  
+  return currentTime >= fromTimeNum && currentTime <= toTimeNum
+}
+
 export interface MenuItem {
   id: number
   name: string
@@ -195,9 +213,13 @@ class CanteenService {
   // Check if API is available
   private async isApiAvailable(): Promise<boolean> {
     try {
+      console.log("🏥 Checking API health at:", `${apiClient.getBaseURL()}/health`)
+      console.log("🌐 Full API Base URL:", apiClient.getBaseURL())
       await apiClient.get("/health")
+      console.log("✅ API health check passed")
       return true
-    } catch {
+    } catch (error) {
+      console.log("❌ API health check failed:", error)
       return false
     }
   }
@@ -205,19 +227,45 @@ class CanteenService {
   // Get all canteens
   async getCanteens(): Promise<Canteen[]> {
     try {
-      if (await this.isApiAvailable()) {
+      console.log("🔍 Attempting to fetch canteens from API...")
+      console.log("🌐 API Base URL:", apiClient.getBaseURL())
+      console.log("🔗 Full endpoint:", `${apiClient.getBaseURL()}${API_ENDPOINTS.EXPLORE_CANTEENS}`)
+      
+      // Try direct API call without health check
+      try {
+        console.log("✅ Making direct request to canteens endpoint...")
         const response = await apiClient.get<{ code: number; message: string; data: Canteen[] }>(API_ENDPOINTS.EXPLORE_CANTEENS)
+        console.log("📡 API Response:", response)
         if (response.code === 1) {
+          console.log("✅ Canteens fetched successfully:", response.data)
           return response.data
         } else {
+          console.error("❌ API returned error code:", response.code)
+          throw new Error("Failed to fetch canteens")
+        }
+      } catch (directError) {
+        console.error("❌ Direct API call failed:", directError)
+        console.error("❌ Error details:", directError.message)
+        
+        // Try without health check - just make the request directly
+        console.log("🔄 Trying direct request without health check...")
+        const response = await apiClient.get<{ code: number; message: string; data: Canteen[] }>(API_ENDPOINTS.EXPLORE_CANTEENS)
+        console.log("📡 API Response (direct):", response)
+        if (response.code === 1) {
+          console.log("✅ Canteens fetched successfully (direct):", response.data)
+          return response.data
+        } else {
+          console.error("❌ API returned error code (direct):", response.code)
           throw new Error("Failed to fetch canteens")
         }
       }
     } catch (error) {
-      console.warn("API not available, using mock data:", handleApiError(error))
+      console.error("❌ API Error:", error)
+      console.warn("🔄 Falling back to mock data")
     }
 
     // Fallback to mock data
+    console.log("📋 Using mock canteens data")
     return this.mockCanteens
   }
 
@@ -333,19 +381,34 @@ class CanteenService {
   // Get all categories
   async getCategories(): Promise<Category[]> {
     try {
-      if (await this.isApiAvailable()) {
+      console.log("🔍 Attempting to fetch categories from API...")
+      console.log("🌐 API Base URL:", apiClient.getBaseURL())
+      console.log("🔗 Full endpoint:", `${apiClient.getBaseURL()}${API_ENDPOINTS.CANTEEN_ITEM_CATEGORIES}`)
+      
+      // Try direct API call
+      try {
+        console.log("✅ Making direct request to categories endpoint...")
         const response = await apiClient.get<{ code: number; data: Category[] }>(API_ENDPOINTS.CANTEEN_ITEM_CATEGORIES)
+        console.log("📡 Categories API Response:", response)
         if (response.code === 1) {
+          console.log("✅ Categories fetched successfully:", response.data)
           return response.data
         } else {
+          console.error("❌ Categories API returned error code:", response.code)
           throw new Error("Failed to fetch categories")
         }
+      } catch (directError) {
+        console.error("❌ Direct categories API call failed:", directError)
+        console.error("❌ Error details:", directError.message)
+        throw directError
       }
     } catch (error) {
-      console.warn("API not available, using mock data:", handleApiError(error))
+      console.error("❌ Categories API Error:", error)
+      console.warn("🔄 Falling back to mock categories data")
     }
 
     // Fallback to mock data
+    console.log("📋 Using mock categories data")
     return this.mockCategories
   }
 

@@ -18,6 +18,7 @@ import Image from "next/image"
 import Link from "next/link"
 import SearchBar from "@/components/search-bar"
 import ContactUs from "./contact/page"
+import { isCanteenOpen } from "@/services/canteen-service"
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
@@ -233,9 +234,10 @@ export default function Home() {
               <section className="mb-8">
                 <h2 className="mb-4 text-lg font-semibold">Canteens</h2>
                 <div className="grid gap-4">
-                  {canteens.map((canteen, index) => (
-                    <Link href={`/canteen/${canteen.CanteenName.toLowerCase().replace(/\s+/g, '-')}`} key={index}>
-                      <Card className="card-hover overflow-hidden">
+                  {canteens.map((canteen, index) => {
+                    const isOpen = isCanteenOpen(canteen.fromTime, canteen.ToTime)
+                    const canteenCard = (
+                      <Card className={`overflow-hidden ${isOpen ? 'card-hover' : 'opacity-50 cursor-not-allowed'}`}>
                         <CardContent className="p-0">
                           <div className="relative h-40">
                             <Image
@@ -245,6 +247,13 @@ export default function Home() {
                               className="object-cover"
                             />
                             <Badge className="absolute right-2 top-2 bg-primary">★ 4.5+</Badge>
+                            {!isOpen && (
+                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <Badge variant="secondary" className="text-white bg-red-500">
+                                  CLOSED
+                                </Badge>
+                              </div>
+                            )}
                           </div>
                           <div className="p-4">
                             <h3 className="text-lg font-semibold">{canteen.CanteenName}</h3>
@@ -257,8 +266,18 @@ export default function Home() {
                           </div>
                         </CardContent>
                       </Card>
-                    </Link>
-                  ))}
+                    )
+
+                    return isOpen ? (
+                      <Link href={`/canteen/${canteen.CanteenName.toLowerCase().replace(/\s+/g, '-')}`} key={index}>
+                        {canteenCard}
+                      </Link>
+                    ) : (
+                      <div key={index} className="cursor-not-allowed">
+                        {canteenCard}
+                      </div>
+                    )
+                  })}
                 </div>
               </section>
             </motion.div>
