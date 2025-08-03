@@ -16,54 +16,28 @@ import SearchBar from "@/components/search-bar"
 // Sample canteens data
 const canteens = [
   {
-    id: "kl-adda",
-    name: "KL Adda",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.5,
-    preparationTime: "10-15 min",
-    slug: "kl-adda",
-    description: "South Indian and North Indian cuisine",
-    openingHours: "8:00 AM - 8:00 PM",
+    CanteenName: "Tree",
+    Location: "Tree Block",
+    fromTime: "08:00",
+    ToTime: "20:00",
+    accessTo: "ALL",
+    poster: "/placeholder.svg?height=200&width=300",
   },
   {
-    id: "satish",
-    name: "Satish",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.2,
-    preparationTime: "15-20 min",
-    slug: "satish",
-    description: "Chinese and snacks",
-    openingHours: "9:00 AM - 9:00 PM",
+    CanteenName: "KLU",
+    Location: "Tulip Hostel",
+    fromTime: "09:00",
+    ToTime: "21:00",
+    accessTo: "ALL",
+    poster: "/placeholder.svg?height=200&width=300",
   },
   {
-    id: "naturals",
-    name: "Naturals",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.7,
-    preparationTime: "5-10 min",
-    slug: "naturals",
-    description: "Ice cream and beverages",
-    openingHours: "10:00 AM - 10:00 PM",
-  },
-  {
-    id: "juice-junction",
-    name: "Juice Junction",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.3,
-    preparationTime: "5-10 min",
-    slug: "juice-junction",
-    description: "Fresh juices and smoothies",
-    openingHours: "8:00 AM - 7:00 PM",
-  },
-  {
-    id: "campus-cafe",
-    name: "Campus Cafe",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.1,
-    preparationTime: "10-15 min",
-    slug: "campus-cafe",
-    description: "Multi-cuisine restaurant",
-    openingHours: "8:30 AM - 9:30 PM",
+    CanteenName: "Satish",
+    Location: "Engineering Block",
+    fromTime: "08:30",
+    ToTime: "19:30",
+    accessTo: "ALL",
+    poster: "/placeholder.svg?height=200&width=300",
   },
 ]
 
@@ -73,8 +47,8 @@ export default function CanteensPage() {
   // Filter canteens based on search query
   const filteredCanteens = canteens.filter(
     (canteen) =>
-      canteen.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      canteen.description.toLowerCase().includes(searchQuery.toLowerCase()),
+      canteen.CanteenName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      canteen.Location.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   return (
@@ -91,29 +65,30 @@ export default function CanteensPage() {
         <div className="grid gap-4">
           {filteredCanteens.map((canteen, index) => (
             <motion.div
-              key={canteen.id}
+              key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Link href={`/canteen/${canteen.slug}`}>
+              <Link href={`/canteen/${canteen.CanteenName.toLowerCase().replace(/\s+/g, '-')}`}>
                 <Card className="card-hover overflow-hidden">
                   <CardContent className="p-0">
                     <div className="relative h-40">
                       <Image
-                        src={canteen.image || "/placeholder.svg"}
-                        alt={canteen.name}
+                        src={canteen.poster || "/placeholder.svg"}
+                        alt={canteen.CanteenName}
                         fill
                         className="object-cover"
                       />
-                      <Badge className="absolute right-2 top-2 bg-primary">★ {canteen.rating}</Badge>
+                      <Badge className="absolute right-2 top-2 bg-primary">★ 4.5+</Badge>
                     </div>
                     <div className="p-4">
-                      <h3 className="text-lg font-semibold">{canteen.name}</h3>
-                      <p className="text-sm text-muted-foreground">{canteen.description}</p>
+                      <h3 className="text-lg font-semibold">{canteen.CanteenName}</h3>
                       <div className="mt-2 flex justify-between">
-                        <p className="text-xs text-muted-foreground">Prep time: {canteen.preparationTime}</p>
-                        <p className="text-xs text-muted-foreground">{canteen.openingHours}</p>
+                        <p className="text-xs text-muted-foreground">Location: {canteen.Location}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {canteen.fromTime && canteen.ToTime ? `${canteen.fromTime} - ${canteen.ToTime}` : "Hours not specified"}
+                        </p>
                       </div>
                     </div>
                   </CardContent>

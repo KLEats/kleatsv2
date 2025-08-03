@@ -75,7 +75,6 @@ export default function Home() {
       price: item.price,
       quantity: 1,
       canteen: item.canteenName || item.canteen,
-      canteenId: item.canteenId,
       image: item.image,
       packaging: false,
     })
@@ -186,13 +185,13 @@ export default function Home() {
               <section className="mb-8">
                 <h2 className="mb-4 text-lg font-semibold">Food Categories</h2>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-                  {categories.map((category) => (
-                    <Link href={`/category/${category.slug}`} key={category.id}>
+                  {categories.map((category, index) => (
+                    <Link href={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`} key={index}>
                       <Card className="card-hover overflow-hidden">
                         <CardContent className="flex flex-col items-center p-4">
                           <div className="mb-3 rounded-full bg-secondary/10 p-2">
                             <Image
-                              src={category.image || "/placeholder.svg"}
+                              src={category.poster || "/placeholder.svg"}
                               alt={category.name}
                               width={60}
                               height={60}
@@ -200,6 +199,9 @@ export default function Home() {
                             />
                           </div>
                           <h3 className="text-center text-sm font-medium">{category.name}</h3>
+                          {category.no_of_items > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">{category.no_of_items} items</p>
+                          )}
                         </CardContent>
                       </Card>
                     </Link>
@@ -231,25 +233,26 @@ export default function Home() {
               <section className="mb-8">
                 <h2 className="mb-4 text-lg font-semibold">Canteens</h2>
                 <div className="grid gap-4">
-                  {canteens.map((canteen) => (
-                    <Link href={`/canteen/${canteen.id}`} key={canteen.id}>
+                  {canteens.map((canteen, index) => (
+                    <Link href={`/canteen/${canteen.CanteenName.toLowerCase().replace(/\s+/g, '-')}`} key={index}>
                       <Card className="card-hover overflow-hidden">
                         <CardContent className="p-0">
                           <div className="relative h-40">
                             <Image
-                              src={canteen.image || "/placeholder.svg"}
-                              alt={canteen.name}
+                              src={canteen.poster || "/placeholder.svg"}
+                              alt={canteen.CanteenName}
                               fill
                               className="object-cover"
                             />
-                            <Badge className="absolute right-2 top-2 bg-primary">★ {canteen.rating}</Badge>
+                            <Badge className="absolute right-2 top-2 bg-primary">★ 4.5+</Badge>
                           </div>
                           <div className="p-4">
-                            <h3 className="text-lg font-semibold">{canteen.name}</h3>
-                            <p className="text-sm text-muted-foreground">{canteen.description}</p>
+                            <h3 className="text-lg font-semibold">{canteen.CanteenName}</h3>
                             <div className="mt-2 flex justify-between">
-                              <p className="text-xs text-muted-foreground">Prep time: {canteen.preparationTime}</p>
-                              <p className="text-xs text-muted-foreground">{canteen.openingHours}</p>
+                              <p className="text-xs text-muted-foreground">Location: {canteen.Location}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {canteen.fromTime && canteen.ToTime ? `${canteen.fromTime} - ${canteen.ToTime}` : "Hours not specified"}
+                              </p>
                             </div>
                           </div>
                         </CardContent>

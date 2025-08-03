@@ -12,7 +12,8 @@ interface FoodItemCardProps {
     id: number
     name: string
     price: number
-    canteen: string
+    canteen?: string
+    canteenName?: string
     image?: string
     category?: string
     description?: string
@@ -30,7 +31,7 @@ export default function FoodItemCard({ item, onAddToCart }: FoodItemCardProps) {
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-semibold">{item.name}</h3>
-              <p className="mb-1 text-xs text-muted-foreground">{item.canteen}</p>
+              <p className="mb-1 text-xs text-muted-foreground">{item.canteen || item.canteenName}</p>
             </div>
             {item.rating && (
               <Badge variant="outline" className="bg-primary/10 text-primary">

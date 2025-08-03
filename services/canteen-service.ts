@@ -1,20 +1,12 @@
 import { apiClient, API_ENDPOINTS, type ApiResponse, handleApiError } from "@/lib/api"
 
 export interface Canteen {
-  id: string
-  name: string
-  description: string
-  image: string
-  rating: number
-  preparationTime: string
-  openingHours: string
-  location: string
-  contactNumber: string
-  isActive: boolean
-  categories: string[]
-  ownerId: string
-  createdAt: string
-  updatedAt: string
+  CanteenName: string
+  Location: string
+  fromTime: string
+  ToTime: string
+  accessTo: string
+  poster: string
 }
 
 export interface MenuItem {
@@ -41,63 +33,41 @@ export interface MenuItem {
 }
 
 export interface Category {
-  id: string
   name: string
-  description: string
-  image: string
-  slug: string
+  startTime: string
+  endTime: string
+  no_of_items: number
+  avalbleDays: number[]
+  isAvalable: boolean
+  poster: string
 }
 
 class CanteenService {
   // Mock data - will be replaced by API calls
   private mockCanteens: Canteen[] = [
     {
-      id: "kl-adda",
-      name: "KL Adda",
-      description: "South Indian and North Indian cuisine",
-      image: "/placeholder.svg?height=200&width=300",
-      rating: 4.5,
-      preparationTime: "10-15 min",
-      openingHours: "8:00 AM - 8:00 PM",
-      location: "Main Campus, Ground Floor",
-      contactNumber: "+91 9876543210",
-      isActive: true,
-      categories: ["South Indian", "North Indian", "Beverages"],
-      ownerId: "user_2",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      CanteenName: "Tree",
+      Location: "Tree Block",
+      fromTime: "08:00",
+      ToTime: "20:00",
+      accessTo: "ALL",
+      poster: "/placeholder.svg?height=200&width=300",
     },
     {
-      id: "satish",
-      name: "Satish",
-      description: "Chinese and snacks",
-      image: "/placeholder.svg?height=200&width=300",
-      rating: 4.2,
-      preparationTime: "15-20 min",
-      openingHours: "9:00 AM - 9:00 PM",
-      location: "Engineering Block, First Floor",
-      contactNumber: "+91 9876543211",
-      isActive: true,
-      categories: ["Chinese", "Snacks", "Beverages"],
-      ownerId: "user_3",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      CanteenName: "KLU",
+      Location: "Tulip Hostel",
+      fromTime: "09:00",
+      ToTime: "21:00",
+      accessTo: "ALL",
+      poster: "/placeholder.svg?height=200&width=300",
     },
     {
-      id: "naturals",
-      name: "Naturals",
-      description: "Ice cream and beverages",
-      image: "/placeholder.svg?height=200&width=300",
-      rating: 4.7,
-      preparationTime: "5-10 min",
-      openingHours: "10:00 AM - 10:00 PM",
-      location: "Student Center",
-      contactNumber: "+91 9876543212",
-      isActive: true,
-      categories: ["Ice Cream", "Beverages"],
-      ownerId: "user_4",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      CanteenName: "Satish",
+      Location: "Engineering Block",
+      fromTime: "08:30",
+      ToTime: "19:30",
+      accessTo: "ALL",
+      poster: "/placeholder.svg?height=200&width=300",
     },
   ]
 
@@ -176,39 +146,49 @@ class CanteenService {
 
   private mockCategories: Category[] = [
     {
-      id: "1",
       name: "South Indian",
-      description: "Traditional South Indian cuisine",
-      image: "/placeholder.svg?height=80&width=80",
-      slug: "south-indian",
+      startTime: "08:00",
+      endTime: "20:00",
+      no_of_items: 10,
+      avalbleDays: [0, 1, 2, 3, 4, 5, 6],
+      isAvalable: true,
+      poster: "/placeholder.svg?height=200&width=300",
     },
     {
-      id: "2",
       name: "Chinese",
-      description: "Chinese and Indo-Chinese dishes",
-      image: "/placeholder.svg?height=80&width=80",
-      slug: "chinese",
+      startTime: "09:00",
+      endTime: "21:00",
+      no_of_items: 8,
+      avalbleDays: [0, 1, 2, 3, 4, 5, 6],
+      isAvalable: true,
+      poster: "/placeholder.svg?height=200&width=300",
     },
     {
-      id: "3",
       name: "Snacks",
-      description: "Quick bites and snacks",
-      image: "/placeholder.svg?height=80&width=80",
-      slug: "snacks",
+      startTime: "10:00",
+      endTime: "22:00",
+      no_of_items: 15,
+      avalbleDays: [0, 1, 2, 3, 4, 5, 6],
+      isAvalable: true,
+      poster: "/placeholder.svg?height=200&width=300",
     },
     {
-      id: "4",
       name: "Beverages",
-      description: "Drinks and beverages",
-      image: "/placeholder.svg?height=80&width=80",
-      slug: "beverages",
+      startTime: "08:00",
+      endTime: "20:00",
+      no_of_items: 20,
+      avalbleDays: [0, 1, 2, 3, 4, 5, 6],
+      isAvalable: true,
+      poster: "/placeholder.svg?height=200&width=300",
     },
     {
-      id: "5",
       name: "North Indian",
-      description: "North Indian cuisine",
-      image: "/placeholder.svg?height=80&width=80",
-      slug: "north-indian",
+      startTime: "10:00",
+      endTime: "22:00",
+      no_of_items: 12,
+      avalbleDays: [0, 1, 2, 3, 4, 5, 6],
+      isAvalable: true,
+      poster: "/placeholder.svg?height=200&width=300",
     },
   ]
 
@@ -226,8 +206,12 @@ class CanteenService {
   async getCanteens(): Promise<Canteen[]> {
     try {
       if (await this.isApiAvailable()) {
-        const response = await apiClient.get<ApiResponse<Canteen[]>>(API_ENDPOINTS.CANTEENS)
-        return response.data
+        const response = await apiClient.get<{ code: number; message: string; data: Canteen[] }>(API_ENDPOINTS.EXPLORE_CANTEENS)
+        if (response.code === 1) {
+          return response.data
+        } else {
+          throw new Error("Failed to fetch canteens")
+        }
       }
     } catch (error) {
       console.warn("API not available, using mock data:", handleApiError(error))
@@ -350,8 +334,12 @@ class CanteenService {
   async getCategories(): Promise<Category[]> {
     try {
       if (await this.isApiAvailable()) {
-        const response = await apiClient.get<ApiResponse<Category[]>>(API_ENDPOINTS.CATEGORIES)
-        return response.data
+        const response = await apiClient.get<{ code: number; data: Category[] }>(API_ENDPOINTS.CANTEEN_ITEM_CATEGORIES)
+        if (response.code === 1) {
+          return response.data
+        } else {
+          throw new Error("Failed to fetch categories")
+        }
       }
     } catch (error) {
       console.warn("API not available, using mock data:", handleApiError(error))
@@ -470,6 +458,59 @@ class CanteenService {
     }
 
     return this.mockCanteens[canteenIndex]
+  }
+
+  // Add item to canteen using the specific endpoint
+  async addCanteenItem(itemData: {
+    canteenId: string
+    name: string
+    description: string
+    price: number
+    category: string
+    image?: string
+    available?: boolean
+    preparationTime?: string
+    ingredients?: string[]
+    nutritionInfo?: {
+      calories: number
+      protein: number
+      carbs: number
+      fat: number
+    }
+  }): Promise<MenuItem> {
+    try {
+      if (await this.isApiAvailable()) {
+        const response = await apiClient.post<ApiResponse<MenuItem>>(
+          API_ENDPOINTS.ADD_CANTEEN_ITEM(itemData.canteenId),
+          itemData
+        )
+        return response.data
+      }
+    } catch (error) {
+      console.warn("API not available, using mock data:", handleApiError(error))
+    }
+
+    // Fallback to mock data - create a new mock item
+    const newItem: MenuItem = {
+      id: Date.now(), // Generate a temporary ID
+      name: itemData.name,
+      description: itemData.description,
+      price: itemData.price,
+      image: itemData.image || "/placeholder.svg?height=200&width=300",
+      category: itemData.category,
+      canteenId: itemData.canteenId,
+      canteenName: this.mockCanteens.find(c => c.id === itemData.canteenId)?.name || "Unknown Canteen",
+      available: itemData.available ?? true,
+      preparationTime: itemData.preparationTime || "10-15 min",
+      ingredients: itemData.ingredients || [],
+      nutritionInfo: itemData.nutritionInfo,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    // Add to mock data
+    this.mockMenuItems.push(newItem)
+    return newItem
   }
 }
 

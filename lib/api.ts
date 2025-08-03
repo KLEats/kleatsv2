@@ -13,11 +13,14 @@ export const API_ENDPOINTS = {
   CANTEENS: "/canteens",
   CANTEEN_BY_ID: (id: string) => `/canteens/${id}`,
   CANTEEN_MENU: (id: string) => `/canteens/${id}/menu`,
+  EXPLORE_CANTEENS: "/api/explore/canteens",
 
   // Menu item endpoints
   MENU_ITEMS: "/menu-items",
   MENU_ITEM_BY_ID: (id: string) => `/menu-items/${id}`,
+  ADD_CANTEEN_ITEM: (canteenId: string) => `/Canteen/item/add`,
   CATEGORIES: "/categories",
+  CANTEEN_ITEM_CATEGORIES: "/api/canteen/item/categories",
 
   // Order endpoints
   ORDERS: "/orders",
@@ -60,6 +63,10 @@ class ApiClient {
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth_token")
     }
+  }
+
+  getToken(): string | null {
+    return this.token
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
