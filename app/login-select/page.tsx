@@ -13,7 +13,7 @@ export default function LoginSelectPage() {
       icon: GraduationCap,
       href: "/login",
       color: "bg-green-100 text-green-600",
-      hoverColor: "hover:bg-green-50",
+      hoverColor: "hover:bg-green-50 hover:text-green-700",
     },
     {
       title: "Worker Portal",
@@ -21,7 +21,7 @@ export default function LoginSelectPage() {
       icon: Users,
       href: "/worker-login",
       color: "bg-blue-100 text-blue-600",
-      hoverColor: "hover:bg-blue-50",
+      hoverColor: "hover:bg-blue-50 hover:text-blue-700",
     },
     {
       title: "Admin Portal",
@@ -29,7 +29,7 @@ export default function LoginSelectPage() {
       icon: Shield,
       href: "/admin-login",
       color: "bg-red-100 text-red-600",
-      hoverColor: "hover:bg-red-50",
+      hoverColor: "hover:bg-red-50 hover:text-red-700",
     },
   ]
 

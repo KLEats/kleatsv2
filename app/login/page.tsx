@@ -224,9 +224,9 @@ export default function LoginPage() {
 
   return (
     <div className="container flex min-h-screen flex-col items-center justify-center px-4 py-8">
-      <Link href="/login-select" className="absolute left-4 top-4 flex items-center text-sm text-muted-foreground">
+      <Link href="/" className="absolute left-4 top-4 flex items-center text-sm text-muted-foreground">
         <ArrowLeft className="mr-1 h-4 w-4" />
-        Back to Login Options
+        Back to Home
       </Link>
 
       <div className="mx-auto w-full max-w-md">
@@ -254,14 +254,9 @@ export default function LoginPage() {
               {isLoading ? "Signing in..." : "Continue with Google"}
             </Button>
             <div className="flex justify-between">
-              <p className="text-xs text-muted-foreground">Opens in the same tab. We never store your password.</p>
-              <Button 
-                onClick={testConnectivity} 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs text-muted-foreground"
-              >
-                Test connectivity
+              <p className="text-xs text-muted-foreground">We never store your password.</p>
+              <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground">
+                <Link href="/login-select">Login options</Link>
               </Button>
             </div>
           </CardContent>
