@@ -48,7 +48,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). Licensed under GPL v3.</p>
+          <p>&copy; {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). Licensed under <a href="https://github.com/KLEats/kleatsv2/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">GNU GPL V3</a>.</p>
         </div>
       </div>
     </footer>
