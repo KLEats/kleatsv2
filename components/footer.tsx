@@ -1,5 +1,5 @@
 import Logo from "./logo"
-import { Facebook, Instagram, Twitter } from "lucide-react"
+import { Instagram, Github, Send } from "lucide-react"
 import Link from 'next/link';
 
 
@@ -40,9 +40,9 @@ export default function Footer() {
           <div className="md:text-right">
             <h3 className="mb-2 text-sm font-medium">Follow Us</h3>
             <div className="flex space-x-3 md:justify-end">
-              <a href="#" className="text-muted-foreground hover:text-primary"><Facebook className="h-5 w-5" /><span className="sr-only">Facebook</span></a>
-              <a href="#" className="text-muted-foreground hover:text-primary"><Instagram className="h-5 w-5" /><span className="sr-only">Instagram</span></a>
-              <a href="#" className="text-muted-foreground hover:text-primary"><Twitter className="h-5 w-5" /><span className="sr-only">Twitter</span></a>
+              <a href="https://t.me/+X0n_azyktiVmMzI0" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Send className="h-5 w-5" /><span className="sr-only">Telegram</span></a>
+              <a href="https://www.instagram.com/kleats.official?igsh=MTZna3N0Y3U1bmRudA==" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Instagram className="h-5 w-5" /><span className="sr-only">Instagram</span></a>
+              <a href="https://github.com/KLEats/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Github className="h-5 w-5" /><span className="sr-only">GitHub</span></a>
             </div>
           </div>
         </div>
