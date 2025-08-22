@@ -48,7 +48,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} KL Eats. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} KL Eats. Licensed under GPL v3.</p>
         </div>
       </div>
     </footer>
