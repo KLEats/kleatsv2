@@ -28,7 +28,18 @@ export default function Footer() {
         GPL v3 Licensed
       </a>{" "}
       - You’re free to copy, modify, and yell “WHY IS THIS NOT WORKING?!” just like we did.
-    </span>
+      </span>,
+    <span key="3">
+      <a
+        href="https://github.com/KLEats/kleatsv2/blob/main/LICENSE"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:underline"
+      >
+        GPL v3 Licensed
+      </a>{" "}
+      — You read it right.......its a statement that  All the rigts are reversed , U turn. 
+    </span>,
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -44,7 +55,7 @@ export default function Footer() {
       }, 700); // This should match the transition duration
     }, 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [footerMessages.length]);
 
   return (
     <footer className="border-t bg-background/95 backdrop-blur-sm">
@@ -97,7 +108,7 @@ export default function Footer() {
 
           {/* Fixed copyright */}
           <p>
-             🄯 {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). All rights revesved.
+             🄯 {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). All rights reversed.
           </p>
         </div>
       </div>
