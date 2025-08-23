@@ -1,6 +1,6 @@
 "use client"
 import Logo from "./logo"
-import { Instagram, Github, Send } from "lucide-react"
+import { Instagram, Github, Send, Linkedin } from "lucide-react"
 import Link from 'next/link';
 import { useEffect, useState } from "react";
 
@@ -94,6 +94,7 @@ export default function Footer() {
             <div className="flex space-x-3 md:justify-end">
               <a href="https://t.me/+X0n_azyktiVmMzI0" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Send className="h-5 w-5" /><span className="sr-only">Telegram</span></a>
               <a href="https://www.instagram.com/kleats.official?igsh=MTZna3N0Y3U1bmRudA==" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Instagram className="h-5 w-5" /><span className="sr-only">Instagram</span></a>
+              <a href="https://linkedin.com/company/kleats" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Linkedin className="h-5 w-5" /><span className="sr-only">LinkedIn</span></a>
               <a href="https://github.com/KLEats/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Github className="h-5 w-5" /><span className="sr-only">GitHub</span></a>
             </div>
           </div>
