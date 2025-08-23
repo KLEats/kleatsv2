@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2, Clock, Package } from "lucide-react"
+import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2, Clock, Package, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -13,10 +13,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { Slider } from "@/components/ui/slider"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, togglePackaging, totalPrice, clearCart, canClearCart } = useCart()
@@ -28,6 +30,11 @@ export default function CartPage() {
   const [customMinutes, setCustomMinutes] = useState<number>(20)
   const [isProcessing, setIsProcessing] = useState(false)
   const [unavailableMap, setUnavailableMap] = useState<Record<number, string>>({})
+  const [appliedCoupons, setAppliedCoupons] = useState<string[]>([])
+  const [availableCoupons, setAvailableCoupons] = useState<string[]>([])
+  const [couponInput, setCouponInput] = useState("")
+  const [isFetchingCoupons, setIsFetchingCoupons] = useState(false)
+  const [flashCoupon, setFlashCoupon] = useState<string | null>(null)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
 
   // Redirect to login only after auth state is initialized, and preserve return URL
@@ -57,6 +64,7 @@ export default function CartPage() {
     qs.set("mode", mode)
     if (mode === "slot") qs.set("time", selectedSlot)
     if (mode === "custom") qs.set("mins", String(customMinutes))
+  if (appliedCoupons.length > 0) qs.set("coupons", appliedCoupons.join(","))
     router.push(`/payment?${qs.toString()}`)
   }
 
@@ -129,6 +137,62 @@ export default function CartPage() {
 
   // Gateway charge: ceil of 3% of the total (including packaging)
   const gatewayCharge = Math.ceil(totalPrice * 0.03)
+  const effectiveGateway = appliedCoupons.includes("GLUG") ? 0 : gatewayCharge
+  const freebiesCount = appliedCoupons.includes("FREECANE")
+    ? items.reduce((sum, it) => sum + it.quantity, 0)
+    : 0
+
+  const toggleCoupon = (code: "GLUG" | "FREECANE") => {
+    setAppliedCoupons((prev) => {
+      const next = prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+      if (!prev.includes(code)) {
+        setFlashCoupon(code)
+        setTimeout(() => setFlashCoupon(null), 900)
+      }
+      return next
+    })
+  }
+
+  const applyCouponFromInput = () => {
+    const code = couponInput.trim().toUpperCase()
+    if (!code) return
+    if (code !== "GLUG" && code !== "FREECANE") {
+      toast({ title: "Invalid coupon", description: "This code isn’t supported.", variant: "destructive" })
+      return
+    }
+    if (appliedCoupons.includes(code)) {
+      toast({ title: "Already applied", description: `${code} is already in use.` })
+      return
+    }
+    toggleCoupon(code as "GLUG" | "FREECANE")
+    setCouponInput("")
+    toast({ title: "Coupon applied", description: `${code} added to your order.` })
+  }
+
+  const getToken = () =>
+    (typeof window !== "undefined" && (localStorage.getItem("auth_token") || localStorage.getItem("token"))) || null
+
+  const fetchAvailableCoupons = async () => {
+    setIsFetchingCoupons(true)
+    try {
+      const token = getToken()
+      if (baseUrl) {
+        const res = await fetch(`${baseUrl}/api/user/coupons/available`, {
+          headers: token ? { Authorization: token } : undefined,
+          cache: "no-store",
+        })
+        if (res.ok) {
+          const data = await res.json().catch(() => ([] as string[]))
+          const list: string[] = Array.isArray(data) ? data : Array.isArray((data as any)?.codes) ? (data as any).codes : []
+          const normalized = list.map((c) => String(c).toUpperCase()).filter((c) => c === "GLUG" || c === "FREECANE")
+          if (normalized.length) setAvailableCoupons(Array.from(new Set(normalized)))
+        }
+      }
+    } catch {}
+    finally {
+      setIsFetchingCoupons(false)
+    }
+  }
 
   return (
     <div className="min-h-screen pb-16 page-transition">
@@ -150,7 +214,7 @@ export default function CartPage() {
         {items.length > 0 ? (
           <>
             {Object.keys(unavailableMap).length > 0 && (
-              <div className="mb-4">
+              <motion.div className="mb-4" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
                 <Alert variant="destructive">
                   <AlertTitle>Some items aren’t available right now</AlertTitle>
                   <AlertDescription>
@@ -165,13 +229,19 @@ export default function CartPage() {
                     })()}
                   </AlertDescription>
                 </Alert>
-              </div>
+              </motion.div>
             )}
 
             <div className="mb-6">
               {items.map((item) => (
-                <Card key={item.id} className="mb-4">
-                  <CardContent className="p-4">
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <Card className="mb-4">
+                    <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       {item.image && (
                         <div className="relative h-16 w-16 overflow-hidden rounded-md">
@@ -236,7 +306,8 @@ export default function CartPage() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                  </Card>
+                </motion.div>
               ))}
             </div>
 
@@ -261,6 +332,92 @@ export default function CartPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Coupons */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Coupons</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Entry row */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter coupon code"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") applyCouponFromInput()
+                    }}
+                  />
+                  <Button onClick={applyCouponFromInput} className="whitespace-nowrap">Apply</Button>
+                  <Button variant="outline" onClick={fetchAvailableCoupons} disabled={isFetchingCoupons} className="whitespace-nowrap">
+                    {isFetchingCoupons ? "Loading…" : "Fetch"}
+                  </Button>
+                </div>
+
+                {/* Available chips (render only after Fetch) */}
+                {availableCoupons.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    <AnimatePresence>
+                      {availableCoupons.map((code, idx) => {
+                        const active = appliedCoupons.includes(code)
+                        return (
+                          <motion.div
+                            key={code}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="relative"
+                          >
+                            <motion.button
+                              className={`relative rounded-full px-3 py-1.5 text-sm border ${active ? "bg-primary text-primary-foreground border-transparent" : "bg-background hover:bg-muted border-input"}`}
+                              onClick={() => toggleCoupon(code as "GLUG" | "FREECANE")}
+                              whileHover={{ scale: 1.04 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <span className="inline-flex items-center">
+                                {code === "FREECANE" ? <Gift className="mr-1 h-4 w-4" /> : null}
+                                {code}
+                              </span>
+                              <AnimatePresence>
+                                {flashCoupon === code && (
+                                  <motion.span
+                                    key="ring"
+                                    className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-primary"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 0.6, scale: 1.06 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.6 }}
+                                  />
+                                )}
+                              </AnimatePresence>
+                            </motion.button>
+                          </motion.div>
+                        )
+                      })}
+                    </AnimatePresence>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  GLUG waives the Gateway Charge. FREECANE adds a free Sugarcane juice for each item in your cart.
+                </p>
+                <AnimatePresence>
+                  {freebiesCount > 0 && (
+                    <motion.div
+                      key="freebies"
+                      className="flex items-center gap-2 rounded-md bg-muted p-2 text-sm"
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                    >
+                      <Gift className="h-4 w-4 text-primary" />
+                      <span>Free Sugarcane juice × {freebiesCount} will be included</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+            </Card>
 
             <Card className="mb-6">
               <CardHeader>
@@ -334,14 +491,24 @@ export default function CartPage() {
                     <span>₹{packagingCost}</span>
                   </div>
                 )}
-                <div className="flex items-center justify-between">
-                  <span>Gateway Charge (3%)</span>
-                  <span>₹{gatewayCharge}</span>
-                </div>
+                {freebiesCount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1"><Gift className="h-4 w-4" /> Free Sugarcane × {freebiesCount}</span>
+                    <span>₹0</span>
+                  </div>
+                )}
+                <motion.div
+                  className="flex items-center justify-between"
+                  animate={flashCoupon === "GLUG" ? { scale: [1, 1.03, 1] } : {}}
+                  transition={{ duration: 0.4 }}
+                >
+                  <span>Gateway Charge (3%){appliedCoupons.includes("GLUG") ? " — waived by KL-GLUG" : ""}</span>
+                  <span>₹{effectiveGateway}</span>
+                </motion.div>
                 <Separator className="my-2" />
                 <div className="flex items-center justify-between font-medium">
                   <span>Total</span>
-                  <span>₹{totalPrice + gatewayCharge}</span>
+                  <span>₹{totalPrice + effectiveGateway}</span>
                 </div>
               </CardContent>
               <CardFooter>

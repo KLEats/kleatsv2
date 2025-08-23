@@ -33,6 +33,7 @@ export default function PaymentPage() {
   const [pickupMode, setPickupMode] = useState<"asap" | "slot" | "custom">("asap")
   const [selectedSlot, setSelectedSlot] = useState<string>("")
   const [customMinutes, setCustomMinutes] = useState<number>(20)
+  const [coupons, setCoupons] = useState<string[]>([])
   const searchParams = useSearchParams()
 
   // Cashfree toggle (client-side env must be prefixed with NEXT_PUBLIC_)
@@ -79,7 +80,8 @@ export default function PaymentPage() {
   }, [items, paymentSuccess, isAuthenticated, router])
 
   const tipAmount = 0
-  const gatewayCharge = Math.ceil(totalPrice * 0.03)
+  const baseGateway = Math.ceil(totalPrice * 0.03)
+  const gatewayCharge = coupons.includes("GLUG") ? 0 : baseGateway
   const totalAmount = totalPrice + gatewayCharge + tipAmount
 
   // Generate pickup time options aligned to the next quarter-hour (8 x 15-min slots)
@@ -107,6 +109,7 @@ export default function PaymentPage() {
     const mode = (searchParams?.get("mode") || "").toLowerCase()
     const time = searchParams?.get("time") || ""
     const mins = Number(searchParams?.get("mins") || "0")
+    const couponsParam = searchParams?.get("coupons") || ""
     if (mode === "asap") {
       setPickupMode("asap")
     } else if (mode === "slot" && time) {
@@ -118,6 +121,13 @@ export default function PaymentPage() {
     } else {
       // Fallback to ASAP if params are missing
       setPickupMode("asap")
+    }
+    if (couponsParam) {
+      const parsed = couponsParam
+        .split(",")
+        .map((c) => c.trim().toUpperCase())
+        .filter((c) => c === "GLUG" || c === "FREECANE")
+      setCoupons(Array.from(new Set(parsed)))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -232,7 +242,8 @@ export default function PaymentPage() {
 
           // Determine orderType based on packaging selection
           const isPackagingSelected = items.some((it) => !!it.packaging)
-          const orderType = isPackagingSelected ? "pickup" : "dinein"
+          // Updated: orderType matches API contract: pickup | takeway
+          const orderType = isPackagingSelected ? "pickup" : "takeway"
           const gateway = "cashfree"
 
           const res = await fetch(`${baseUrl}/api/User/order/placeOrder`, {
@@ -241,7 +252,7 @@ export default function PaymentPage() {
               Authorization: token,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ orderType, deliveryTime, gateway }),
+            body: JSON.stringify({ orderType, deliveryTime, coupons, gateway }),
           })
           if (!res.ok) {
             const errText = await res.text().catch(() => "")
@@ -406,6 +417,12 @@ export default function PaymentPage() {
                     <span>Subtotal</span>
                     <span>₹{totalPrice}</span>
                   </div>
+                  {coupons.includes("FREECANE") && (
+                    <motion.div className="flex items-center justify-between" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <span>Free Sugarcane (FREECANE)</span>
+                      <span>₹0</span>
+                    </motion.div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span>Gateway Charge (3%)</span>
                     <span>₹{gatewayCharge}</span>
