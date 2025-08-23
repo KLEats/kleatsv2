@@ -242,8 +242,8 @@ export default function PaymentPage() {
 
           // Determine orderType based on packaging selection
           const isPackagingSelected = items.some((it) => !!it.packaging)
-          // Updated: orderType matches API contract: pickup | takeway
-          const orderType = isPackagingSelected ? "pickup" : "takeway"
+          // Updated: orderType matches API contract: pickup | dinein
+          const orderType = isPackagingSelected ? "pickup" : "dinein"
           const gateway = "cashfree"
 
           const res = await fetch(`${baseUrl}/api/User/order/placeOrder`, {

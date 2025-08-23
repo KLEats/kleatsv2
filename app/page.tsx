@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import BottomNavigation from "@/components/bottom-navigation"
 import LoadingScreen from "@/components/loading-screen"
 import type { MenuItem } from "@/services/canteen-service"
-import { canteenService } from "@/services/canteen-service"
 import FoodItemCard from "@/components/food-item-card"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
@@ -130,17 +129,80 @@ export default function Home() {
     }
   }, [isLoading])
 
-  // Load mock popular items from service (uses mock since API probing is disabled)
+  // Load real popular items from backend
   useEffect(() => {
     let mounted = true
-    ;(async () => {
+  const loadPopular = async () => {
       try {
-        const items = await canteenService.getPopularItems(6)
-        if (mounted) setPopularItems(items)
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://188.245.112.188:3000"
+        const res = await fetch(`${base}/api/explore/get/popular-items`, { cache: "no-store" })
+        if (!res.ok) throw new Error(`Popular HTTP ${res.status}`)
+        const json = await res.json()
+        const rawArr: any[] = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
+        // New API wraps the item under `item`; fall back to entry itself
+        const avail = rawArr
+          .map((entry) => ({ entry, base: entry?.item ?? entry }))
+          .filter(({ base }) => base?.ava !== false)
+        // fetch canteen names for display
+        const uniqueCIds: number[] = Array.from(
+          new Set(
+            avail
+              .map(({ base }) => Number(base?.canteenId))
+              .filter((n) => !Number.isNaN(n))
+          )
+        )
+        const nameEntries = await Promise.all(
+          uniqueCIds.map(async (id) => {
+            try {
+              const d = await fetch(`${base}/api/explore/canteen/details/${id}`, { cache: "no-store" })
+              if (!d.ok) throw new Error()
+              const dJson = await d.json()
+              const cname = dJson?.data?.CanteenName || `Canteen ${id}`
+              return [id, cname] as const
+            } catch {
+              return [id, `Canteen ${id}`] as const
+            }
+          })
+        )
+        const nameMap = Object.fromEntries(nameEntries) as Record<number, string>
+        const buildImageUrl = (path?: string | null) => {
+          if (!path) return "/placeholder.svg"
+          return `${base}${String(path).startsWith("/") ? path : `/${path}`}`
+        }
+        const rate = (seed: string) => {
+          let h = 0
+          for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+          const inc = ((h % 50) + 1) / 100
+          return Number((4.5 + inc).toFixed(2))
+        }
+        const mapped: MenuItem[] = avail.map(({ base }) => {
+          const id = Number(base.ItemId)
+          const cIdNum = Number(base.canteenId)
+          const canteenName = nameMap[cIdNum] || String(base.CanteenName || base.canteenName || `Canteen ${cIdNum}`)
+          return {
+            id,
+            name: String(base.ItemName || base.name || "Item"),
+            description: String(base.Description || base.description || ""),
+            price: Number(base.Price || 0),
+            image: buildImageUrl(base.ImagePath),
+            category: String(base.category || ""),
+            canteenId: String(base.canteenId ?? ""),
+            canteenName,
+            available: base.ava !== false,
+            rating: rate(`${id}-${base.ItemName || base.name || ""}`),
+            preparationTime: undefined,
+            ingredients: undefined,
+            nutritionInfo: undefined as any,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+        })
+        if (mounted) setPopularItems(mapped)
       } catch (e) {
         console.warn("Popular items load failed", e)
       }
-    })()
+    }
+    loadPopular()
     return () => {
       mounted = false
     }
@@ -312,8 +374,12 @@ export default function Home() {
                       </button>
                     </div>
                     <Dialog>
-                      <DialogTrigger className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs hover:bg-secondary">
-                        <Info className="h-3 w-3" /> Details
+                      <DialogTrigger
+                        className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs hover:bg-secondary"
+                        aria-label="View details"
+                      >
+                        <Info className="h-3 w-3" />
+                        <span className="hidden md:inline">Details</span>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
@@ -363,8 +429,12 @@ export default function Home() {
                       </button>
                     </div>
                     <Dialog>
-                      <DialogTrigger className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs hover:bg-secondary">
-                        <Info className="h-3 w-3" /> Details
+                      <DialogTrigger
+                        className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs hover:bg-secondary"
+                        aria-label="View details"
+                      >
+                        <Info className="h-3 w-3" />
+                        <span className="hidden md:inline">Details</span>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>

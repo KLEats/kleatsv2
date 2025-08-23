@@ -24,6 +24,7 @@ export default function CartIcon() {
   }, [totalItems])
 
   if (!isMounted) return null
+  if (totalItems === 0) return null
 
   return (
     <Link href="/cart">

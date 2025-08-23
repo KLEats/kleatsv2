@@ -250,7 +250,7 @@ export default function LoginPage() {
             <GraduationCap className="h-8 w-8 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-primary">KL-Eats</h1>
-          <p className="text-muted-foreground">Student Login</p>
+          <p className="text-muted-foreground">Secure Login</p>
         </div>
 
         <Card>
