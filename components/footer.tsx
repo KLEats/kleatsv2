@@ -32,11 +32,16 @@ export default function Footer() {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFading, setIsFading] = useState(false);
 
-  // Cycle messages every 1 minute (60000 ms)
+  // Cycle messages every 6 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % footerMessages.length);
+      setIsFading(true); // Start fading out
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % footerMessages.length);
+        setIsFading(false); // Start fading in
+      }, 700); // This should match the transition duration
     }, 6000);
     return () => clearInterval(interval);
   }, []);
@@ -86,13 +91,13 @@ export default function Footer() {
         {/* Bottom rotating message + copyright */}
         <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground space-y-2">
           {/* Rotating funny message */}
-          <p className="transition-opacity duration-700 ease-in-out">
+          <p className={`transition-opacity duration-700 ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}>
             {footerMessages[currentIndex]}
           </p>
 
           {/* Fixed copyright */}
           <p>
-            © {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). All rights reserved.
+             🄯 {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). All rights revesved.
           </p>
         </div>
       </div>
