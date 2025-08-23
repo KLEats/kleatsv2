@@ -1,27 +1,14 @@
+"use client"
+
 import { Mail, MapPin, Headphones, Users } from "lucide-react"
 import Footer from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-
-export const metadata = {
-  title: "Contact Us – KL-Eats",
-  description: "Get support, share feedback, or learn how to contribute to KL-Eats.",
-}
+import PageHeader from "@/components/page-header"
 
 export default function ContactUs() {
   return (
     <main className="min-h-screen page-transition">
-      {/* Sticky Header aligned with app */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container px-4 py-6 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Mail className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold leading-tight">Contact Us</h1>
-            <p className="text-xs text-muted-foreground">Support & Feedback Center</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader title="Contact Us" />
 
       {/* Hero-like intro */}
       <section className="relative overflow-hidden">

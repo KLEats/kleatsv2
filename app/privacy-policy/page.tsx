@@ -1,26 +1,13 @@
+"use client"
+
 import { Shield, Mail, FileText, Lock, RefreshCw, Users } from "lucide-react"
 import Footer from "@/components/footer"
-
-export const metadata = {
-  title: "Privacy Policy – Kleats",
-  description: "How Kleats collects, uses, shares, and protects your information.",
-}
+import PageHeader from "@/components/page-header"
 
 export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen page-transition">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container px-4 py-6 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-            <Shield className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold leading-tight">Privacy Policy</h1>
-            <p className="text-xs text-muted-foreground">Last updated: August 20, 2025</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader title="Privacy Policy" />
 
       {/* Intro */}
       <section className="container px-4 pt-8">
