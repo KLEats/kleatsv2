@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import CartIcon from "@/components/cart-icon"
 
 type RawItem = {
   ItemId: number
@@ -389,6 +390,7 @@ export default function CategoryPage() {
           )}
         </div>
       </div>
+  <CartIcon />
     </div>
   )
 }
