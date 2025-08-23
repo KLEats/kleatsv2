@@ -137,8 +137,13 @@ export default function CartPage() {
   // Gateway charge: ceil of 3% of the total (including packaging)
   const gatewayCharge = Math.ceil(totalPrice * 0.03)
   const effectiveGateway = appliedCoupons.includes("GLUG") ? 0 : gatewayCharge
+  const ELIGIBLE_FREECANE = ["Starters", "FriedRice", "Noodles", "Pizza", "Burgers", "Lunch"]
   const freebiesCount = appliedCoupons.includes("FREECANE")
-    ? items.reduce((sum, it) => sum + it.quantity, 0)
+    ? items.reduce((sum, it) => {
+        const cat = (it.category || "").toString()
+        const match = ELIGIBLE_FREECANE.some((c) => c.toLowerCase() === cat.toLowerCase())
+        return match ? sum + it.quantity : sum
+      }, 0)
     : 0
 
   const toggleCoupon = (code: "GLUG" | "FREECANE") => {
@@ -404,7 +409,7 @@ export default function CartPage() {
                   </AnimatePresence>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  GLUG waives the Gateway Charge. FREECANE adds a free Sugarcane juice for each item in your cart.
+                  GLUG waives the Gateway Charge. FREECANE adds a free Sugarcane juice for each applicable item (Starters, FriedRice, Noodles, Pizza, Burgers, Lunch).
                 </p>
                 <AnimatePresence>
                   {freebiesCount > 0 && (

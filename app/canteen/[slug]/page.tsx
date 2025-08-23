@@ -365,7 +365,7 @@ export default function CanteenPage() {
           ? `${baseUrl}${String(it.ImagePath).startsWith("/") ? it.ImagePath : `/${it.ImagePath}`}`
           : "/placeholder.svg"
         const qty = Number(it.quantity ?? 1) || 1
-        addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, image: img })
+  addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, image: img, category: String(it.category || "") })
       })
     } catch {}
   }
@@ -415,7 +415,7 @@ export default function CanteenPage() {
     const current = items.find((i) => i.id === item.id)?.quantity || 0
   try { if (typeof window !== "undefined") localStorage.setItem("last_canteen_id", String(canteenId)) } catch {}
     if (current === 0) {
-      addItem({ id: item.id, name: item.name, price: item.price, quantity: 1, canteen: item.canteen, image: item.image })
+  addItem({ id: item.id, name: item.name, price: item.price, quantity: 1, canteen: item.canteen, image: item.image, category: item.category })
     } else {
       updateQuantity(item.id, current + 1)
     }
@@ -451,7 +451,7 @@ export default function CanteenPage() {
     const current = items.find((i) => i.id === item.id)?.quantity || 0
     const next = Math.max(0, current - 1)
     // Optimistic local update
-    if (next === 0) removeItem(item.id)
+  if (next === 0) removeItem(item.id)
     else updateQuantity(item.id, next)
     setBusyItemId(item.id)
     if (!token) {

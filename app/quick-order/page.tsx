@@ -64,6 +64,7 @@ export default function QuickOrderPage() {
       price: order.totalPrice / order.items.length,
       quantity: 1,
       canteen: order.canteen,
+  category: "",
     })
 
     // Navigate to cart

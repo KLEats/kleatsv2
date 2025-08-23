@@ -12,6 +12,7 @@ export type CartItem = {
   canteen: string
   image?: string
   packaging?: boolean
+  category?: string
 }
 
 type CartContextType = {
