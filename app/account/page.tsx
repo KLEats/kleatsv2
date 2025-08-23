@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "next-themes"
 import BottomNavigation from "@/components/bottom-navigation"
-import { Moon, Sun, User, LogOut, Edit } from "lucide-react"
+import { Moon, Sun, User, LogOut } from "lucide-react"
 // import Link from "next/link" // removed with history
 // import { useOrders } from "@/hooks/use-orders" // removed with history
 // import { Badge } from "@/components/ui/badge" // removed with history
@@ -24,7 +24,7 @@ export default function AccountPage() {
   const { theme, setTheme } = useTheme()
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const { user, logout, updateUser } = useAuth()
+  const { user, logout } = useAuth()
   const router = useRouter()
   const [backendProfile, setBackendProfile] = useState<
     | null
@@ -45,7 +45,7 @@ export default function AccountPage() {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
   const [editName, setEditName] = useState("")
   const [editEmail, setEditEmail] = useState("")
-  const [editStudentId, setEditStudentId] = useState("")
+
   const [editPhoneNo, setEditPhoneNo] = useState("")
   const [editRole, setEditRole] = useState<"student" | "staff">("student")
   // Backend expects DayOrHos to be either "hostel" or "DayScoller"
@@ -81,7 +81,9 @@ export default function AccountPage() {
         if (data?.data) setBackendProfile(data.data)
       }
       void run()
-    } catch {}
+    } catch (error) {
+      console.error("Failed to fetch user data:", error)
+    }
   }, [mounted])
 
   // Set initial values for edit form (prefer backend values when available)
@@ -89,7 +91,7 @@ export default function AccountPage() {
     if (user) {
       setEditName(backendProfile?.name || user.name)
       setEditEmail(backendProfile?.email || user.email)
-      setEditStudentId(user.studentId || "")
+
       setEditPhoneNo(backendProfile?.phoneNo ? String(backendProfile.phoneNo) : "")
       setEditRole((backendProfile?.role as any) === "staff" ? "staff" : "student")
       setEditDayOrHos((backendProfile?.DayOrHos as any) === "DayScoller" ? "DayScoller" : "hostel")
@@ -119,7 +121,7 @@ export default function AccountPage() {
         phoneNo: editPhoneNo ? Number(editPhoneNo) : undefined,
         role: editRole,
         DayOrHos: editDayOrHos,
-        studentId: editStudentId || undefined,
+
       }
       // prune undefined
       Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k])
@@ -140,7 +142,9 @@ export default function AccountPage() {
       try {
         const json = JSON.parse(text)
         if (json?.data) setBackendProfile(json.data)
-      } catch {}
+      } catch (parseError) {
+        console.error("Failed to parse response:", parseError)
+      }
       setIsEditProfileOpen(false)
     } catch (e) {
       console.error("Edit error:", e)
@@ -165,16 +169,10 @@ export default function AccountPage() {
         <Card className="mb-6">
           <CardContent className="flex items-center gap-4 p-6">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-white">
-              {user.name.charAt(0)}
+              {user.name?.charAt(0) || "U"}
             </div>
             <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">{backendProfile?.name || user.name}</h2>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsEditProfileOpen(true)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground">ID: {user.studentId}</p>
+              <h2 className="text-xl font-bold">{backendProfile?.name || user.name}</h2>
               {backendProfile && (
                 <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
                   <p>Phone: {backendProfile.phoneNo}</p>
@@ -299,15 +297,7 @@ export default function AccountPage() {
                 </div>
               </RadioGroup>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-student-id">Student ID</Label>
-              <Input
-                id="edit-student-id"
-                value={editStudentId}
-                onChange={(e) => setEditStudentId(e.target.value)}
-                placeholder="Your student ID"
-              />
-            </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditProfileOpen(false)}>
