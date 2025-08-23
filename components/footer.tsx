@@ -1,10 +1,46 @@
+"use client"
 import Logo from "./logo"
 import { Instagram, Github, Send } from "lucide-react"
 import Link from 'next/link';
-
-
+import { useEffect, useState } from "react";
 
 export default function Footer() {
+  // Fun footer messages with GPL link
+  const footerMessages = [
+    <span key="1">
+      <a
+        href="https://github.com/KLEats/kleatsv2/blob/main/LICENSE"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:underline"
+      >
+        GPL v3 Licensed
+      </a>{" "}
+      — cozz code, like pizza, is better when shared 🍕
+    </span>,
+    <span key="2">
+      <a
+        href="https://github.com/KLEats/kleatsv2/blob/main/LICENSE"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:underline"
+      >
+        GPL v3 Licensed
+      </a>{" "}
+      - You’re free to copy, modify, and yell “WHY IS THIS NOT WORKING?!” just like we did.
+    </span>
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Cycle messages every 1 minute (60000 ms)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % footerMessages.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <footer className="border-t bg-background/95 backdrop-blur-sm">
       <div className="container px-4 py-6">
@@ -47,8 +83,17 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). Licensed under <a href="https://github.com/KLEats/kleatsv2/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">GNU GPL V3</a>.</p>
+        {/* Bottom rotating message + copyright */}
+        <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground space-y-2">
+          {/* Rotating funny message */}
+          <p className="transition-opacity duration-700 ease-in-out">
+            {footerMessages[currentIndex]}
+          </p>
+
+          {/* Fixed copyright */}
+          <p>
+            © {new Date().getFullYear()} KL Eats (A Unit of Equitech Labs Pvt. Ltd.). All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
