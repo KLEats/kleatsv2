@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { Slider } from "@/components/ui/slider"
-import { FREECANE_ENABLED } from "@/lib/utils"
+import { FREECANE_ENABLED, isTimeWithinWindow } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function CartPage() {
@@ -119,20 +119,66 @@ export default function CartPage() {
     return `${hh}:${mm} ${ampm}`
   }
 
-  // Check availability for each item and surface messages from backend
+  // Compute the user-selected target time as HH:mm
+  function targetHHMM(): string | null {
+    try {
+      if (pickupMode === "slot") {
+        if (!selectedSlot) return null
+        const m = selectedSlot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+        if (!m) return null
+        let h = parseInt(m[1], 10)
+        const minutes = parseInt(m[2], 10)
+        const ampm = m[3].toUpperCase()
+        if (ampm === "PM" && h !== 12) h += 12
+        if (ampm === "AM" && h === 12) h = 0
+        return `${String(h).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
+      }
+      if (pickupMode === "custom") {
+        const t = new Date(Date.now() + customMinutes * 60000)
+        return `${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`
+      }
+      const now = new Date()
+      return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+    } catch {
+      return null
+    }
+  }
+
+  // Normalize API times to HH:mm
+  const toHHMM = (t?: string | null) => {
+    if (!t) return undefined as string | undefined
+    const s = String(t).trim()
+    if (!s) return undefined
+    if (s.length >= 5 && s.includes(":")) return s.slice(0, 5)
+    return s
+  }
+
+  // Check availability for the selected pickup/dine time, not current time
   useEffect(() => {
     let cancelled = false
     const check = async () => {
+      const when = targetHHMM()
       const entries: [number, string][] = []
       await Promise.all(
         items.map(async (it) => {
           try {
             const res = await fetch(`${baseUrl}/api/explore/item?item_id=${encodeURIComponent(String(it.id))}`, { cache: "no-store" })
             const json = await res.json().catch(() => ({} as any))
-            const code = typeof json?.code === "number" ? json.code : 1
-            if (code !== 1) {
-              const msg = (json?.message as string) || "Item unavailable at this time."
+            const raw = json?.data || {}
+            const st = toHHMM(raw?.startTime)
+            const et = toHHMM(raw?.endTime)
+            const ava = raw?.ava !== false
+            // If item is globally disabled, respect it
+            if (!ava) {
+              const msg = (json?.message as string) || "Item unavailable right now."
               entries.push([it.id, msg])
+              return
+            }
+            // If we don't have a selected time or item has no window, assume ok
+            if (!when || !st || !et) return
+            const ok = isTimeWithinWindow(when, st, et)
+            if (!ok) {
+              entries.push([it.id, `Available ${st}–${et}. Your selected time ${when} is outside this window.`])
             }
           } catch {
             // Ignore network errors; assume available
@@ -146,10 +192,8 @@ export default function CartPage() {
     }
     if (items.length > 0) check()
     else setUnavailableMap({})
-    return () => {
-      cancelled = true
-    }
-  }, [items, baseUrl])
+    return () => { cancelled = true }
+  }, [items, baseUrl, pickupMode, selectedSlot, customMinutes])
 
   // Calculate packaging cost and a derived top-level toggle state
   const packagingCost = items.reduce((total, item) => total + (item.packaging ? 10 * item.quantity : 0), 0)
