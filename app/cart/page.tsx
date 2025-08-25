@@ -48,12 +48,13 @@ export default function CartPage() {
   const [celebrate, setCelebrate] = useState(false)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
 
-  // FREECANE daily start time: 3:15 PM local time
+  // FREECANE daily start time check (logic only)
   const isAfterFreecaneStart = () => {
     const now = new Date()
     const h = now.getHours()
     const m = now.getMinutes()
-    return h > 15 || (h === 15 && m >= 15)
+    // 2:45 PM local time
+    return h > 14 || (h === 14 && m >= 45)
   }
   const FREECANE_TIME_OK = isAfterFreecaneStart()
 
@@ -221,7 +222,7 @@ export default function CartPage() {
       return appliedCoupons
     }
     if (code === "FREECANE" && !FREECANE_TIME_OK) {
-      toast({ title: "Available after 3:30 PM", description: "You can apply FREECANE after 3:30 PM.", variant: "destructive" })
+      toast({ title: "Available after 3:00 PM", description: "You can apply FREECANE after 3:00 PM.", variant: "destructive" })
       return appliedCoupons
     }
     if (code === "FREECANE" && !hasEligibleFreecane) {
@@ -256,7 +257,7 @@ export default function CartPage() {
       return
     }
     if (code === "FREECANE" && !FREECANE_TIME_OK) {
-      toast({ title: "Available after 3:30 PM", description: "FREECANE can be applied after 3:30 PM.", variant: "destructive" })
+      toast({ title: "Available after 3:00 PM", description: "FREECANE can be applied after 3:00 PM.", variant: "destructive" })
       return
     }
     if (appliedCoupons.includes(code)) {
@@ -513,7 +514,7 @@ export default function CartPage() {
                   </AnimatePresence>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  GLUG waives the Gateway Charge. FREECANE (available after 3:30 PM) adds a free Sugarcane juice for each applicable item (Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch).
+                  GLUG waives the Gateway Charge. FREECANE (available after 3:00 PM) adds a free Sugarcane juice for each applicable item (Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch).
                 </p>
                 <AnimatePresence>
                   {freebiesCount > 0 && (
