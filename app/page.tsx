@@ -422,7 +422,7 @@ export default function Home() {
                         <div className="text-sm space-y-2">
                           <ul className="list-disc pl-5 space-y-1">
                             <li>Code must be entered before payment and qualifying items must be in cart.</li>
-                            <li>Eligible items: Starters (Veg & Non-Veg), Fried Rice, Noodles, Pizza, Burgers, Lunch</li>
+                            <li>Eligible items: Starters (Veg & Non-Veg), Fried Rice, Noodles, Chinese, Pizza, Burgers, Lunch</li>
                             <li>One free sugarcane per item. Cannot be exchanged or transferred.</li>
                             <li>Not valid with other “free item” promotions unless stated.</li>
                             <li>Subject to availability. While supplies last.</li>

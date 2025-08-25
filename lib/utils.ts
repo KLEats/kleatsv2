@@ -46,3 +46,24 @@ export function isOpenNow(fromTime?: string | null, toTime?: string | null): boo
 
 // Coupon feature flags (client-safe; NEXT_PUBLIC_ is inlined at build time)
 export const FREECANE_ENABLED = (process.env.NEXT_PUBLIC_FREECANE_ENABLED ?? "true").toLowerCase() !== "false"
+
+// Check if a specific HH:mm time lies within a start-end window (HH:mm). Handles overnight windows too.
+export function isTimeWithinWindow(targetHHMM: string, fromTime?: string | null, toTime?: string | null): boolean {
+  const target = (targetHHMM || "").trim()
+  const start = (fromTime || "").trim()
+  const end = (toTime || "").trim()
+  if (!target || !start || !end) return true
+  const toMin = (t: string) => {
+    const m = t.match(/^(\d{1,2}):(\d{2})$/)
+    if (!m) return NaN
+    const h = parseInt(m[1], 10)
+    const mm = parseInt(m[2], 10)
+    return h * 60 + mm
+  }
+  const tMin = toMin(target)
+  const sMin = toMin(start)
+  const eMin = toMin(end)
+  if ([tMin, sMin, eMin].some((v) => isNaN(v))) return true
+  if (sMin <= eMin) return tMin >= sMin && tMin <= eMin
+  return tMin >= sMin || tMin <= eMin
+}

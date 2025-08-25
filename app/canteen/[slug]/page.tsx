@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { isOpenNow } from "@/lib/utils"
+import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
 
 type CanteenDetails = {
   CanteenName: string
@@ -532,9 +532,10 @@ export default function CanteenPage() {
           if (found) existingQty = Number(found.quantity ?? 1) || 1
         }
       } catch {}
-      if (existingQty > 0) await updateBackendCartQuantity(Number(item.id), existingQty + 1)
-      else await addBackendToCart(item.id, 1)
-      await syncLocalCartFromBackend()
+  if (existingQty > 0) await updateBackendCartQuantity(Number(item.id), existingQty + 1)
+  else await addBackendToCart(item.id, 1)
+  await syncLocalCartFromBackend()
+  try { await postAddScheduleCheck(item) } catch {}
     } catch (e: any) {
       // Revert optimistic local change and notify user
       if (current === 0) {
@@ -547,6 +548,66 @@ export default function CanteenPage() {
     } finally {
       setBusyItemId(null)
     }
+  }
+
+  // Read the user's selected schedule from localStorage and return HH:mm string if set
+  function getSelectedTimeHHMM(): string | null {
+    try {
+      const mode = (localStorage.getItem("kleats_schedule_mode") || "asap").toLowerCase()
+      if (mode === "slot") {
+        const slot = localStorage.getItem("kleats_schedule_slot") || ""
+        // slot like 03:15 PM
+        const m = slot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+        if (m) {
+          let h = parseInt(m[1], 10)
+          const minutes = parseInt(m[2], 10)
+          const ampm = m[3].toUpperCase()
+          if (ampm === "PM" && h !== 12) h += 12
+          if (ampm === "AM" && h === 12) h = 0
+          const hh = String(h).padStart(2, "0")
+          const mm = String(minutes).padStart(2, "0")
+          return `${hh}:${mm}`
+        }
+        return null
+      }
+      if (mode === "custom") {
+        const mins = parseInt(localStorage.getItem("kleats_schedule_mins") || "0", 10)
+        const t = new Date(Date.now() + Math.max(0, mins) * 60000)
+        const hh = String(t.getHours()).padStart(2, "0")
+        const mm = String(t.getMinutes()).padStart(2, "0")
+        return `${hh}:${mm}`
+      }
+      // ASAP -> use current time
+      const now = new Date()
+      const hh = String(now.getHours()).padStart(2, "0")
+      const mm = String(now.getMinutes()).padStart(2, "0")
+      return `${hh}:${mm}`
+    } catch {
+      return null
+    }
+  }
+
+  // After a successful add/increment, fetch the item and inform if the chosen time is outside its window
+  async function postAddScheduleCheck(item: any) {
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || ""
+    const targetHHMM = getSelectedTimeHHMM()
+    if (!targetHHMM) return
+    try {
+      const res = await fetch(`${base}/api/explore/item?item_id=${encodeURIComponent(String(item.id))}`, { cache: "no-store" })
+      if (!res.ok) return
+      const data = await res.json()
+      const raw = data?.data
+      const st: string | undefined = (raw?.startTime ? String(raw.startTime).slice(0, 5) : item.startTime) || undefined
+      const et: string | undefined = (raw?.endTime ? String(raw.endTime).slice(0, 5) : item.endTime) || undefined
+      if (!st || !et) return
+      const ok = isTimeWithinWindow(targetHHMM, st, et)
+      if (!ok) {
+        toast({
+          title: "Timing mismatch",
+          description: `${item.name} is available ${st}–${et}. Your selected time ${targetHHMM} is outside this window. You can keep it for later or adjust time in cart.`,
+        })
+      }
+    } catch {}
   }
 
   const handleDecrement = async (item: any) => {
@@ -740,9 +801,9 @@ export default function CanteenPage() {
                       quantity={localQty}
                       isLoading={busyItemId === item.id}
                       unavailable={unavailable}
-                      onAddToCart={unavailable ? undefined : handleAddToCart}
-                      onIncrement={unavailable ? undefined : () => handleIncrement(item)}
-                      onDecrement={unavailable ? undefined : () => handleDecrement(item)}
+                      onAddToCart={handleAddToCart}
+                      onIncrement={() => handleIncrement(item)}
+                      onDecrement={() => handleDecrement(item)}
                     />
                   )
                 })}
@@ -794,9 +855,9 @@ export default function CanteenPage() {
                       quantity={localQty}
                       isLoading={busyItemId === item.id}
                       unavailable={unavailable}
-                      onAddToCart={unavailable ? undefined : handleAddToCart}
-                      onIncrement={unavailable ? undefined : () => handleIncrement(item)}
-                      onDecrement={unavailable ? undefined : () => handleDecrement(item)}
+                      onAddToCart={handleAddToCart}
+                      onIncrement={() => handleIncrement(item)}
+                      onDecrement={() => handleDecrement(item)}
                     />
                   )
                 })}

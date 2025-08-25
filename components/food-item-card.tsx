@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Plus, Minus, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface FoodItemCardProps {
   item: {
@@ -57,9 +58,7 @@ export default function FoodItemCard({ item, unavailable = false, onAddToCart, q
             )}
             <div className="flex items-center justify-between">
               <span className="font-bold text-lg">₹{item.price}</span>
-              {unavailable ? (
-                <span className="text-xs text-muted-foreground">Unavailable</span>
-              ) : quantity > 0 ? (
+              {quantity > 0 ? (
                 <div className="flex items-center gap-2">
                   <Button size="icon" variant="outline" disabled={isLoading} onClick={onDecrement} className="h-8 w-8 rounded-full">
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Minus className="h-4 w-4" />}
@@ -70,21 +69,35 @@ export default function FoodItemCard({ item, unavailable = false, onAddToCart, q
                   </Button>
                 </div>
               ) : (
-                <Button size="sm" disabled={isLoading} onClick={handleAction} className="rounded-full">
-                  {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
-                  {isLoading ? "Adding" : "Add"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" disabled={isLoading} onClick={handleAction} className="rounded-full">
+                    {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
+                    {isLoading ? "Adding" : "Add"}
+                  </Button>
+                  {unavailable && (
+                    <Badge variant="outline" className="px-2 py-0.5 text-[10px] rounded-full border-amber-300 text-amber-700 bg-amber-50">
+                      Pre-Order
+                    </Badge>
+                  )}
+                </div>
               )}
             </div>
           </div>
         </div>
         <div className="relative h-auto w-28 flex-shrink-0">
           <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className={"object-cover " + (unavailable ? "grayscale opacity-60" : "")} />
-          {unavailable && (
-            <div className="absolute left-1 top-1 rounded bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-              Unavailable
-            </div>
-          )}
+          <AnimatePresence>
+            {unavailable && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="absolute left-1 top-1 rounded bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+              >
+                Unavailable
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </CardContent>
     </Card>
