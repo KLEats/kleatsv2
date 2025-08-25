@@ -158,7 +158,7 @@ export default function CartPage() {
   // Gateway charge: ceil of 3% of the total (including packaging)
   const gatewayCharge = Math.ceil(totalPrice * 0.03)
   const effectiveGateway = appliedCoupons.includes("GLUG") ? 0 : gatewayCharge
-  const ELIGIBLE_FREECANE = ["Starters", "FriedRice", "Noodles", "Chinese", "Pizza", "Burgers", "Lunch"]
+  const ELIGIBLE_FREECANE = ["Starters", "FriedRice", "Noodles", "Pizza", "Burgers", "Lunch", "Chinese"]
   const hasEligibleFreecane = items.some((it) => {
     const cat = (it.category || "").toString()
     return ELIGIBLE_FREECANE.some((c) => c.toLowerCase() === cat.toLowerCase())
