@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { isOpenNow } from "@/lib/utils"
+import { useCart } from "@/hooks/use-cart"
 
 interface SearchBarProps {
   value?: string
@@ -39,6 +40,7 @@ export default function SearchBar({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
+  const { addItem, clearCart } = useCart()
 
   // Cache canteenId -> canteenName to avoid repeated detail fetches
   const [canteenNameCache, setCanteenNameCache] = useState<Record<number, string>>(() => {
@@ -191,6 +193,33 @@ export default function SearchBar({
     if (!res.ok) throw new Error(await res.text())
   }
 
+  // Sync local cart state from backend so CartIcon updates immediately
+  const syncLocalCartFromBackend = async () => {
+    const token = getToken()
+    if (!token) return
+    try {
+      const res = await fetch(`${baseUrl}/api/user/cart/getCartItems`, {
+        method: "GET",
+        headers: { Authorization: token },
+        cache: "no-store",
+      })
+      if (!res.ok) return
+      const data = await res.json().catch(() => ({} as any))
+      const payload = data?.data
+      if (!payload) return
+      clearCart()
+      const canteenName = payload.CanteenName || ""
+      const itemsArr: any[] = Array.isArray(payload.cart) ? payload.cart : []
+      itemsArr.forEach((it: any) => {
+        const img = it.ImagePath
+          ? `${baseUrl}${String(it.ImagePath).startsWith("/") ? it.ImagePath : `/${it.ImagePath}`}`
+          : "/placeholder.svg"
+        const qty = Number(it.quantity ?? 1) || 1
+        addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, image: img, category: String(it.category || "") })
+      })
+    } catch {}
+  }
+
   const clearBackendCart = async () => {
     const token = getToken()
     if (!token) return
@@ -239,10 +268,10 @@ export default function SearchBar({
         if (!proceed) return
         try { await clearBackendCart() } catch {}
       }
-      await addBackendToCart(itemId, 1)
-      try { if (typeof window !== 'undefined') localStorage.setItem('last_canteen_id', String(canteenId)) } catch {}
-      // Navigate to the canteen page
-      window.location.href = `/canteen/${canteenId}`
+  await addBackendToCart(itemId, 1)
+  try { if (typeof window !== 'undefined') localStorage.setItem('last_canteen_id', String(canteenId)) } catch {}
+  await syncLocalCartFromBackend()
+  // Stay on the page; the cart icon will update immediately
     } catch (err) {
       console.error("Add from search failed", err)
       try {
