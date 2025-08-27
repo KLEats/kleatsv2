@@ -10,7 +10,7 @@ import dynamic from "next/dynamic"
 import Logo from "@/components/logo"
 const ThemeToggle = dynamic(() => import("@/components/theme-toggle"), { ssr: false, loading: () => null })
 import { motion } from "framer-motion"
-import { Star, Clock, Utensils, Copy, Check, ArrowRight, CupSoda, Info } from "lucide-react"
+import { Utensils, Copy, Check, CupSoda, Info } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
@@ -27,6 +27,8 @@ import { toast } from "@/hooks/use-toast"
 // Defer non-critical UI to reduce initial main-thread work (no UX change)
 const Footer = dynamic(() => import("@/components/footer"), { loading: () => null })
 const BottomNavigation = dynamic(() => import("@/components/bottom-navigation"), { loading: () => null })
+const PopularSection = dynamic(() => import("@/components/home-popular"), { ssr: false, loading: () => null })
+const CanteensSection = dynamic(() => import("@/components/home-canteens"), { ssr: false, loading: () => null })
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(() => {
@@ -532,8 +534,10 @@ export default function Home() {
                   className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
                 >
                   <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-br from-primary/10 to-transparent">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                      <Star className="h-5 w-5" />
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
+                      </svg>
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold leading-tight clamp-2">Limited-time campus specials</p>
@@ -545,7 +549,10 @@ export default function Home() {
                     <Link href="#popular" passHref>
                       <button className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs sm:text-sm hover:bg-secondary">
                         Shop now
-                        <ArrowRight className="h-3.5 w-3.5" />
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M5 12h14"/>
+                          <path d="M12 5l7 7-7 7"/>
+                        </svg>
                       </button>
                     </Link>
                   </div>
@@ -622,15 +629,20 @@ export default function Home() {
                   className="rounded-xl border p-4 bg-card/60 backdrop-blur-sm flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                      <Star className="h-5 w-5" />
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
+                      </svg>
                     </div>
                     <div>
                       <p className="text-sm font-semibold">Students’ favorites</p>
                       <p className="text-xs text-muted-foreground">Tap to view popular items</p>
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 12h14"/>
+                    <path d="M12 5l7 7-7 7"/>
+                  </svg>
                 </motion.div>
               </Link>
             </div>
@@ -758,120 +770,13 @@ export default function Home() {
 
             {/* Today's Offers section removed as offers are now highlighted in the hero */}
 
-            <motion.section
-              className="mb-8 scroll-mt-16 md:scroll-mt-20"
-              id="popular"
-              variants={{
-                hidden: { opacity: 0, y: 40 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-              }}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold tracking-tight">Popular Items</h2>
-                <span className="hidden md:inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
-                  <Star className="w-3 h-3" />
-                  <span>Updated Hourly</span>
-                </span>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {popularItems.slice(0, 3).map((item) => {
-                  const normalized = { ...item, canteen: (item as any).canteen ?? item.canteenName }
-                  return (
-                    <motion.div key={item.id} whileHover={{ y: -5, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" }} transition={{ type: "spring", stiffness: 300 }}>
-                      <FoodItemCard
-                        item={normalized as any}
-                        unavailable={(item as any).available === false}
-                        onAddToCart={(it: any) => handlePopularAdd(it)}
-                      />
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </motion.section>
+            <section className="mb-8 scroll-mt-16 md:scroll-mt-20" id="popular">
+              <PopularSection popularItems={popularItems} onAdd={handlePopularAdd} />
+            </section>
 
-            <motion.section
-              className="mb-8"
-              id="canteens"
-              variants={{
-                hidden: { opacity: 0, y: 40 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-              }}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold tracking-tight">Our Canteens</h2>
-              </div>
-              <div className="flex gap-4 overflow-x-auto pb-1">
-                {apiCanteens.map((canteen) => {
-                  const open = isOpenNow(canteen.fromTime, canteen.ToTime)
-                  const closed = open === false
-                  return (
-                    <Link href={`/canteen/${canteen.canteenId}`} key={canteen.canteenId} className="min-w-[320px] max-w-[320px]" passHref>
-                      <motion.div
-                        whileHover={{ y: -5, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                        className="h-full"
-                      >
-                        <Card className="overflow-hidden h-full">
-                          <CardContent className="p-0">
-                            <div className="relative h-44">
-                              <Image
-                                src={
-                                  canteen.poster
-                                    ? `${(process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")}${canteen.poster.startsWith("/") ? canteen.poster : `/${canteen.poster}`}`
-                                    : "/placeholder.svg"
-                                }
-                                alt={canteen.CanteenName}
-                                fill
-                                className={`object-cover${closed ? " grayscale opacity-70" : ""}`}
-                                sizes="(max-width: 640px) 320px, 400px"
-                                priority={false}
-                                decoding="async"
-                              />
-                              <Badge className={`absolute right-2 top-2 shadow-md ${open === true ? "bg-green-500 text-white" : "bg-muted text-foreground"}`}>
-                                {open === true ? "Open" : open === false ? "Not available" : "Timing N/A"}
-                              </Badge>
-                            </div>
-                            <div className="p-4">
-                              <h3 className="text-lg font-semibold truncate">{canteen.CanteenName}</h3>
-                              {canteen.Location && (
-                                <p className="text-sm text-muted-foreground truncate">{canteen.Location}</p>
-                              )}
-                              <div className="mt-2 flex justify-between">
-                                <p className="text-xs text-muted-foreground">
-                                  {(canteen.fromTime || canteen.ToTime) ? `${canteen.fromTime || "?"} - ${canteen.ToTime || "?"}` : "Timing info not available"}
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    </Link>
-                  )
-                })}
-                {/* View All canteens tile */}
-                <Link href="/canteens" className="min-w-[320px] max-w-[320px]" aria-label="View all canteens">
-                  <motion.div
-                    whileHover={{ y: -5, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className="h-full"
-                  >
-                    <Card className="overflow-hidden h-full border-dashed">
-                      <CardContent className="h-44 flex items-center justify-center p-4">
-                        <div className="flex flex-col items-center justify-center text-center gap-2">
-                          <div className="h-12 w-12 rounded-full bg-secondary/10 text-primary flex items-center justify-center">
-                            <Utensils className="h-6 w-6" />
-                          </div>
-                          <div className="flex items-center gap-2 text-sm font-medium">
-                            <span>View All Canteens</span>
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </Link>
-              </div>
-            </motion.section>
+            <section className="mb-8" id="canteens">
+              <CanteensSection canteens={apiCanteens} />
+            </section>
           </motion.div>
         
       </div>
