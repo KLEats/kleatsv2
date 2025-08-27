@@ -1,13 +1,12 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import BottomNavigation from "@/components/bottom-navigation"
 import LoadingScreen from "@/components/loading-screen"
 import type { MenuItem } from "@/services/canteen-service"
 import FoodItemCard from "@/components/food-item-card"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
-import Footer from "@/components/footer"
+import dynamic from "next/dynamic"
 import Logo from "@/components/logo"
 import ThemeToggle from "@/components/theme-toggle"
 import { motion } from "framer-motion"
@@ -24,6 +23,10 @@ import CartIcon from "@/components/cart-icon"
 import { useCart } from "@/hooks/use-cart"
 import { toast } from "@/hooks/use-toast"
 // import ContactUs from "./contact/page"
+
+// Defer non-critical UI to reduce initial main-thread work (no UX change)
+const Footer = dynamic(() => import("@/components/footer"), { loading: () => null })
+const BottomNavigation = dynamic(() => import("@/components/bottom-navigation"), { loading: () => null })
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(() => {
@@ -233,18 +236,11 @@ export default function Home() {
     }
   }
 
-  if (isLoading) {
-    return <LoadingScreen />
-  }
+  // Keep splash animation but don’t block initial render; we overlay it instead
 
   if (homeLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading delicious food options...</p>
-        </div>
-      </div>
+  <LoadingScreen />
     )
   }
 
@@ -493,9 +489,10 @@ export default function Home() {
         <div className="container px-4 pt-10 pb-6 md:pt-16 md:pb-12 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ x: -24, filter: "blur(6px)" }}
+              animate={{ x: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.7, ease: "easeOut" }}
+              style={{ willChange: "transform, filter" }}
             >
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
                 Quick, tasty meals from your campus canteens
@@ -652,7 +649,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="container px-4 py-6">
+  <div className="container px-4 py-6 [content-visibility:auto] [contain-intrinsic-size:1000px]">
         <div className="md:hidden mb-6 flex items-center gap-2">
           <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search for food..." />
           <ThemeToggle />
@@ -894,6 +891,11 @@ export default function Home() {
       <BottomNavigation />
   {isAuthenticated && <CartIcon />}
     </main>
+    {isLoading && (
+      <div className="fixed inset-0 z-50 bg-background">
+        <LoadingScreen />
+      </div>
+    )}
     </>
   )
 }
