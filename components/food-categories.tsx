@@ -40,18 +40,18 @@ export default function FoodCategories() {
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
       {categories.map((category) => (
         <Link href={`/category/${category.slug}`} key={category.id}>
-          <Card className="card-hover overflow-hidden">
-            <CardContent className="flex flex-col items-center p-4">
+          <Card className="card-hover overflow-hidden h-full">
+            <CardContent className="flex h-36 flex-col items-center justify-center p-4 text-center">
               <div className="mb-3 rounded-full bg-secondary/10 p-2">
                 <Image
                   src={category.image || "/placeholder.svg"}
                   alt={category.name}
-                  width={60}
-                  height={60}
-                  className="h-15 w-15 rounded-full object-cover"
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 rounded-full object-cover"
                 />
               </div>
-              <h3 className="text-center text-sm font-medium">{category.name}</h3>
+              <h3 className="text-center text-sm font-medium truncate w-full">{category.name}</h3>
             </CardContent>
           </Card>
         </Link>

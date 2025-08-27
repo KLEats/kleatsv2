@@ -74,7 +74,7 @@ export default function Home() {
       ;[arr[i], arr[j]] = [arr[j], arr[i]]
     }
     return arr
-  }, [apiCategories, categoriesExpanded])
+  }, [apiCategories])
 
   // Track viewport width to decide how many category tiles fit in one row
   useEffect(() => {
@@ -682,7 +682,7 @@ export default function Home() {
                         transition={{ type: "spring", stiffness: 300 }}
                       >
                         <Card className="overflow-hidden bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40 h-full">
-                          <CardContent className="flex flex-col items-center justify-center p-3 text-center">
+                          <CardContent className="flex flex-col items-center justify-center p-2 text-center h-28">
                             <div className="mb-2 rounded-full bg-secondary/10 p-2">
                               <Image
                                 src={
@@ -699,7 +699,7 @@ export default function Home() {
                                 decoding="async"
                               />
                             </div>
-                            <h3 className="text-xs font-semibold truncate w-full">{category.name}</h3>
+                            <h3 className="text-xs font-semibold leading-tight truncate w-full">{category.name}</h3>
                           </CardContent>
                         </Card>
                       </motion.div>
@@ -712,11 +712,11 @@ export default function Home() {
                       transition={{ type: "spring", stiffness: 300 }}
                     >
                       <Card className="overflow-hidden h-full border-dashed">
-                        <CardContent className="flex flex-col items-center justify-center p-3 text-center h-[106px]">
+                        <CardContent className="flex flex-col items-center justify-center p-2 text-center h-28">
                           <div className="mb-2 rounded-full bg-secondary/10 p-2">
                             <Utensils className="h-6 w-6" />
                           </div>
-                          <span className="text-xs font-semibold">View All</span>
+                          <span className="text-xs font-semibold leading-tight">View All</span>
                         </CardContent>
                       </Card>
                     </motion.div>
@@ -732,8 +732,8 @@ export default function Home() {
                           transition={{ type: "spring", stiffness: 300 }}
                         >
                           <Card className="overflow-hidden bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40 h-full">
-                            <CardContent className="flex flex-col items-center justify-center p-4 text-center">
-                              <div className="mb-3 rounded-full bg-secondary/10 p-2">
+                            <CardContent className="flex flex-col items-center justify-center p-2 text-center h-28">
+                              <div className="mb-2 rounded-full bg-secondary/10 p-2">
                                 <Image
                                   src={
                                     category.poster
@@ -741,29 +741,40 @@ export default function Home() {
                                       : "/placeholder.svg"
                                   }
                                   alt={category.name}
-                                  width={60}
-                                  height={60}
-                                  className="h-15 w-15 rounded-full object-cover"
-                                  sizes="60px"
+                                  width={48}
+                                  height={48}
+                                  className="h-12 w-12 rounded-full object-cover"
+                                  sizes="(max-width: 639px) 48px, 48px"
                                   decoding="async"
                                 />
                               </div>
-                              <h3 className="text-sm font-semibold">{category.name}</h3>
+                              <h3 className="text-xs font-semibold leading-tight truncate w-full">{category.name}</h3>
                             </CardContent>
                           </Card>
                         </motion.div>
                       </Link>
                     ))}
-                  </div>
-                  <div className="mt-3 flex justify-center">
-                    <button
-                      onClick={() => setCategoriesExpanded(false)}
-                      className="text-sm font-medium text-primary hover:underline"
-                      aria-label="Show fewer categories"
-                    >
-                      Show less
+
+                    {/* Show Less tile as a grid item */}
+                    <button onClick={() => setCategoriesExpanded(false)} aria-label="Show fewer categories">
+                      <motion.div
+                        whileHover={{ y: -5, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <Card className="overflow-hidden bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/40 h-full">
+                          <CardContent className="flex flex-col items-center justify-center p-2 text-center h-28">
+                            <div className="mb-2 rounded-full bg-secondary/10 p-2">
+                              <svg className="h-6 w-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M18 15l-6-6-6 6" />
+                              </svg>
+                            </div>
+                            <h3 className="text-xs font-semibold leading-tight">Show Less</h3>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     </button>
                   </div>
+                  
                 </>
               )}
             </motion.section>
