@@ -1,102 +1,58 @@
-# Kleats 
+# KL-Eats 🍽️
 
-Campus food, reimagined. Pre-order, skip the queue, and enjoy a modern PWA-like experience built with Next.js 15, React 18, Tailwind, and shadcn/ui.
+Campus food, without the queue. Pre-order, pay, and pick up. Built on Next.js 15 + React 18 with a slick Tailwind/shadcn UI.
 
-## ✨ Features
-- Lightning-fast Next.js App Router with client/server components
-- Beautiful, responsive UI with Tailwind CSS + shadcn/ui
-- Dark mode with `next-themes`
-- Canteen discovery, categories, and search UX
-- Cart and orders flow (frontend mocks + API-ready)
-- Polished mobile experience with bottom navigation
+## ✨ Highlights
+- App Router + server/client components
+- Mobile-first UI with bottom navigation
+- Categories, search, canteen menus, cart, and orders
+- Dark mode (next-themes) and buttery animations (framer-motion)
 
-## 🗂️ Project Structure
-```
-app/
-  page.tsx                 # Home
-  canteens/                # Explore canteens
-  canteen/[slug]/          # Canteen details
-  category/[slug]/         # Category listing
-  search/                  # Search page
-  orders/                  # Orders
-  privacy-policy/          # Privacy Policy
-  refund-policy/           # Refund & Cancellation Policy
-  terms/                   # Terms & Conditions
-components/                # UI and reusable components
-hooks/                     # Client hooks (cart, auth, etc.)
-lib/                       # API client, utils
-services/                  # Service layer (mock + API-ready)
-```
+## � Quickstart
+Prereqs: Node 18+, pnpm or npm
 
-## 🚀 Getting Started
+Dev on localhost:
+- pnpm: install + dev
+- npm: install + run dev
 
-Prerequisites:
-- Node.js 18+
-- pnpm or npm (project includes a pnpm-lock.yaml)
+Build/start:
+- pnpm build → next build
+- pnpm start → custom HTTPS server (server.mjs)
 
-Install deps and start dev server:
+Scripts (package.json):
+- dev: Next dev server
+- build: Next build
+- start: node server.mjs (expects Linux certs at /etc/letsencrypt by default)
+- lint: next lint
 
-```powershell
-# using pnpm (recommended)
-pnpm install; pnpm dev
+## � Env vars
+Create `.env.local` for backend and payments:
+- NEXT_PUBLIC_API_URL=http://localhost:3000
+- NEXT_PUBLIC_CASHFREE=TRUE | FALSE (optional)
+- NEXT_PUBLIC_CASHFREE_MODE=sandbox | production
 
-# or using npm
-npm install; npm run dev
-```
+Server-only (used by `server.mjs`, optional):
+- SSL_KEY_PATH, SSL_CERT_PATH (default to Let’s Encrypt paths)
+- BACKEND_ORIGIN (for webhook proxy target)
+- ENABLE_SERVER_WEBHOOK_PROXY=true to forward `/cashfree/webhook`
+- CASHFREE_WEBHOOK_PATH=/cashfree/webhook
 
-The dev server will start on http://localhost:3000 (or the next available port, e.g., 3001).
+## 🗂️ Folders you’ll care about
+- app/ — routes (home, canteens, category, orders, payment, etc.)
+- components/ — UI and reusable bits (shadcn/ui inside)
+- hooks/ — cart, auth, orders, etc.
+- lib/ — api client, utils
+- services/ — canteen service (API-ready)
 
-## 🔌 Environment
-
-Create a `.env.local` if you plan to use a backend:
-```
-NEXT_PUBLIC_API_URL=http://localhost:3000
-# Enable Cashfree (optional)
-NEXT_PUBLIC_CASHFREE=TRUE
-# sandbox | production (defaults to production if not set)
-NEXT_PUBLIC_CASHFREE_MODE=sandbox
-```
-
-Note: Some routes use mock endpoints under `app/api/explore/*` for local development.
-
-## 🧱 Tech Stack
-- Next.js 15 (App Router)
-- React 18
-- TypeScript
-- Tailwind CSS + tailwind-merge + tailwindcss-animate
-- shadcn/ui (Radix UI under the hood)
-- framer-motion, lucide-react
-
-## 🧭 Notable Pages
-- Home: curated categories, popular items, offers
-- Canteens: list + open-hours awareness
-- Canteen Details: menu, categories, and info
-- Search: filters, sorting, and improved relevance
-- Legal: Terms, Refund & Cancellation, Privacy
-
-## 🧪 Development Notes
-- ESLint/TS errors are ignored during build for velocity (see `next.config.mjs`).
-- Image optimization disabled for simplicity in dev (`images.unoptimized`).
-- Service layer (`services/canteen-service.ts`) ships with mock data and is API-ready.
-
-## 🤝 Contributing
-Pull requests welcome! If you’d like to contribute content or canteen data, open an issue or reach out.
-
-## 💳 Cashfree Payments (optional)
-- Toggle via `NEXT_PUBLIC_CASHFREE=TRUE` (set in `.env.local`).
-- When enabled, checkout will handle Cashfree responses from the backend.
-- Backend should return either a hosted payment URL (`payment_links.web` / `redirect_url`) or `raw.payment_session_id`.
-- If `payment_session_id` is returned, the frontend loads the Cashfree SDK and initiates checkout.
-
-Callback URLs (must be backend endpoints):
-- return_url: `https://<BACKEND_BASE_URL>/api/User/order/handlePaymentResponse?order_id={order_id}`
-- notify_url (webhook): `https://<BACKEND_BASE_URL>/cashfree/webhook`
+## 🧱 Stack
+Next.js 15 • React 18 • TypeScript • Tailwind • shadcn/ui (Radix) • framer-motion • lucide-react
 
 Notes:
-- Point return_url/notify_url to your backend, not the Next.js frontend. The backend must verify the payment (signature/status), update the order, and then redirect the user to the app (e.g., `https://kleats.in/orders` or `/order/{id}`).
-- Only use a Next.js API route for return/webhook if you’ve implemented server-side verification there.
-- In local sandbox testing, ensure domains and CORS match your backend.
-- If you prefer a frontend landing after backend verification, you can redirect users to `/payment/callback?order_id=<id>&status=<status>` which shows a short verification screen and then navigates to `/orders`.
+- Lint/TS errors are ignored during build (see `next.config.mjs`) for DX.
+- Image optimization disabled in dev (`images.unoptimized`).
 
-## 📄 License
+## 💳 Payments (Cashfree, optional)
+Enable with `NEXT_PUBLIC_CASHFREE=TRUE`. Backend returns a hosted URL or `payment_session_id`; the app loads the Cashfree SDK and redirects. Webhooks can be proxied by `server.mjs` if enabled.
+
+## � License
 Copyright © Equitech Lab Private Limited. All rights reserved.
