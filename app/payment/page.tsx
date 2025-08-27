@@ -201,10 +201,10 @@ export default function PaymentPage() {
         // Build deliveryTime from chosen pickup option
         let deliveryTime = ""
         if (pickupMode === "asap") {
-          // 20 minutes from now as approximate ASAP window
-          const t = new Date(Date.now() + 20 * 60000)
-          const hh = String(t.getHours()).padStart(2, "0")
-          const mm = String(t.getMinutes()).padStart(2, "0")
+          // Use current time for ASAP
+          const now = new Date()
+          const hh = String(now.getHours()).padStart(2, "0")
+          const mm = String(now.getMinutes()).padStart(2, "0")
           deliveryTime = `${hh}:${mm}`
         } else if (pickupMode === "slot") {
           // selectedSlot already formatted like 03:15 PM; convert to 24h HH:mm
