@@ -18,9 +18,11 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 import SearchBar from "@/components/search-bar"
-import { isOpenNow } from "@/lib/utils"
+import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
 import LockOverlay from "@/components/lock-overlay"
 import CartIcon from "@/components/cart-icon"
+import { useCart } from "@/hooks/use-cart"
+import { toast } from "@/hooks/use-toast"
 // import ContactUs from "./contact/page"
 
 export default function Home() {
@@ -55,6 +57,7 @@ export default function Home() {
   const [popularItems, setPopularItems] = useState<MenuItem[]>([])
   const { isAuthenticated } = useAuth()
   const router = useRouter()
+  const { addItem, clearCart } = useCart()
   const [copiedOffer, setCopiedOffer] = useState<number | null>(null)
   const [categoriesExpanded, setCategoriesExpanded] = useState(false)
   // number of columns matching the grid classes below (mobile 3, sm 4, md+ 6)
@@ -256,6 +259,196 @@ export default function Home() {
         </div>
       </div>
     )
+  }
+
+  // Helpers for backend cart integration from the homepage Popular list
+  const getToken = () =>
+    (typeof window !== "undefined" && (localStorage.getItem("auth_token") || localStorage.getItem("token"))) || null
+
+  // Helper to safely parse JSON without throwing on empty responses
+  async function safeJson(res: Response): Promise<any | null> {
+    const ct = res.headers.get("content-type") || ""
+    if (!ct.includes("application/json")) return null
+    try {
+      return await res.json()
+    } catch {
+      return null
+    }
+  }
+
+  const addBackendToCart = async (itemId: number, quantity = 1) => {
+    const token = getToken()
+    if (!token) throw new Error("Not authenticated")
+    const url = `${baseUrl}/api/user/cart/addToCart?id=${encodeURIComponent(String(itemId))}&quantity=${encodeURIComponent(String(quantity))}`
+    const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+    if (!res.ok) throw new Error(await res.text())
+    const json = await safeJson(res)
+    if (json && typeof json.code === "number" && json.code !== 1) {
+      throw new Error(String(json.message || "Failed to add to cart"))
+    }
+  }
+
+  const updateBackendCartQuantity = async (itemId: number, quantity: number) => {
+    const token = getToken()
+    if (!token) throw new Error("Not authenticated")
+    const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
+      method: "POST",
+      headers: {
+        Authorization: token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ itemId, quantity }),
+    })
+    if (!res.ok) throw new Error(await res.text())
+    const json = await safeJson(res)
+    if (json && typeof json.code === "number" && json.code !== 1) {
+      throw new Error(String(json.message || "Failed to update cart"))
+    }
+  }
+
+  const syncLocalCartFromBackend = async () => {
+    const token = getToken()
+    if (!token) return
+    try {
+      const res = await fetch(`${baseUrl}/api/user/cart/getCartItems`, {
+        method: "GET",
+        headers: { Authorization: token },
+        cache: "no-store",
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      const payload = data?.data
+      if (!payload) return
+      clearCart()
+      const canteenName = payload.CanteenName || ""
+      const itemsArr: any[] = Array.isArray(payload.cart) ? payload.cart : []
+      itemsArr.forEach((it) => {
+        const img = it.ImagePath
+          ? `${baseUrl}${String(it.ImagePath).startsWith("/") ? it.ImagePath : `/${it.ImagePath}`}`
+          : "/placeholder.svg"
+        const qty = Number(it.quantity ?? 1) || 1
+        addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, image: img, category: String(it.category || "") })
+      })
+    } catch {}
+  }
+
+  function getSelectedTimeHHMM(): string | null {
+    try {
+      const mode = (localStorage.getItem("kleats_schedule_mode") || "asap").toLowerCase()
+      if (mode === "slot") {
+        const slot = localStorage.getItem("kleats_schedule_slot") || ""
+        const m = slot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+        if (m) {
+          let h = parseInt(m[1], 10)
+          const minutes = parseInt(m[2], 10)
+          const ampm = m[3].toUpperCase()
+          if (ampm === "PM" && h !== 12) h += 12
+          if (ampm === "AM" && h === 12) h = 0
+          const hh = String(h).padStart(2, "0")
+          const mm = String(minutes).padStart(2, "0")
+          return `${hh}:${mm}`
+        }
+        return null
+      }
+      if (mode === "custom") {
+        const mins = parseInt(localStorage.getItem("kleats_schedule_mins") || "0", 10)
+        const t = new Date(Date.now() + Math.max(0, mins) * 60000)
+        const hh = String(t.getHours()).padStart(2, "0")
+        const mm = String(t.getMinutes()).padStart(2, "0")
+        return `${hh}:${mm}`
+      }
+      const now = new Date()
+      const hh = String(now.getHours()).padStart(2, "0")
+      const mm = String(now.getMinutes()).padStart(2, "0")
+      return `${hh}:${mm}`
+    } catch {
+      return null
+    }
+  }
+
+  const postAddScheduleCheck = async (item: any) => {
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || ""
+    const targetHHMM = getSelectedTimeHHMM()
+    if (!targetHHMM) return
+    try {
+      const res = await fetch(`${base}/api/explore/item?item_id=${encodeURIComponent(String(item.id))}`, { cache: "no-store" })
+      if (!res.ok) return
+      const data = await res.json()
+      const raw = data?.data
+      const st: string | undefined = (raw?.startTime ? String(raw.startTime).slice(0, 5) : (item as any).startTime) || undefined
+      const et: string | undefined = (raw?.endTime ? String(raw.endTime).slice(0, 5) : (item as any).endTime) || undefined
+      if (!st || !et) return
+      const ok = isTimeWithinWindow(targetHHMM, st, et)
+      if (!ok) {
+        toast({
+          title: "Timing mismatch",
+          description: `${item.name} is available ${st}–${et}. Your selected time ${targetHHMM} is outside this window. You can keep it for later or adjust time in cart.`,
+        })
+      }
+    } catch {}
+  }
+
+  const handlePopularAdd = async (it: any) => {
+    const cid = (it as any).canteenId
+    const isNumeric = typeof cid === "number" || (typeof cid === "string" && /^\d+$/.test(cid))
+    const canteenHref = isNumeric ? `/canteen/${cid}` : "/canteens"
+    const token = getToken()
+    if (!token) {
+      // fallback to canteen page when not authenticated
+      router.push(canteenHref)
+      return
+    }
+    try {
+      // Check cross-canteen conflict via backend
+      let different = false
+      try {
+        const res = await fetch(`${baseUrl}/api/user/cart/getCartItems`, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+        if (res.ok) {
+          const data = await res.json()
+          const meta = data?.data
+          if (meta && Array.isArray(meta.cart) && meta.cart.length > 0) {
+            const backendCanteenId = Number(meta.canteenId)
+            const currentCanteenId = Number((it as any).canteenId)
+            if (!Number.isNaN(backendCanteenId) && !Number.isNaN(currentCanteenId)) {
+              different = backendCanteenId !== currentCanteenId
+            } else {
+              const backendName = String(meta.CanteenName || meta.canteenName || "").toLowerCase()
+              const currentName = String((it as any).canteen || (it as any).canteenName || "").toLowerCase()
+              if (backendName && currentName) different = backendName !== currentName
+            }
+          }
+        }
+      } catch {}
+      if (different) {
+        // Open canteen for explicit switch/confirmation UX
+        router.push(canteenHref)
+        return
+      }
+      // Add or increment on backend then sync
+      try {
+        // probe existing qty
+        let existingQty = 0
+        try {
+          const res = await fetch(`${baseUrl}/api/user/cart/getCartItems`, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+          if (res.ok) {
+            const data = await safeJson(res)
+            const arr: any[] = Array.isArray(data?.data?.cart) ? data.data.cart : []
+            const found = arr.find((x) => Number(x.ItemId) === Number(it.id))
+            if (found) existingQty = Number(found.quantity ?? 1) || 1
+          }
+        } catch {}
+        if (existingQty > 0) await updateBackendCartQuantity(Number(it.id), existingQty + 1)
+        else await addBackendToCart(it.id, 1)
+        await syncLocalCartFromBackend()
+        try { await postAddScheduleCheck(it) } catch {}
+      } catch (e: any) {
+        // Backend refused; fallback to canteen page
+        toast({ title: "Opening canteen", description: String(e?.message || "We’ll open the canteen to finish adding." ) })
+        router.push(canteenHref)
+      }
+    } catch {
+      router.push(canteenHref)
+    }
   }
 
   return (
@@ -596,11 +789,8 @@ export default function Home() {
                     <motion.div key={item.id} whileHover={{ y: -5, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" }} transition={{ type: "spring", stiffness: 300 }}>
                       <FoodItemCard
                         item={normalized as any}
-                        onAddToCart={(it: any) => {
-                          const cid = (it as any).canteenId
-                          const isNumeric = typeof cid === "number" || (typeof cid === "string" && /^\d+$/.test(cid))
-                          router.push(isNumeric ? `/canteen/${cid}` : "/canteens")
-                        }}
+                        unavailable={(item as any).available === false}
+                        onAddToCart={(it: any) => handlePopularAdd(it)}
                       />
                     </motion.div>
                   )

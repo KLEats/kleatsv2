@@ -22,6 +22,8 @@ import { useCart } from "@/hooks/use-cart"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { toast } from "@/hooks/use-toast"
+import { isTimeWithinWindow } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -185,7 +187,7 @@ function SearchPageContent() {
         return Number((4.5 + inc).toFixed(2))
       }
       let mapped: MenuItem[] = rawArr
-        .filter((it) => it.ava !== false)
+        // include unavailable too; UI will gray out and allow add
         .map((it) => {
           const id = Number(it.ItemId)
           const cId = String(it.canteenId ?? "")
@@ -290,7 +292,9 @@ function SearchPageContent() {
 
   const handleAddToCart = async (item: any) => {
     if (!isAuthenticated) {
-      router.push("/login")
+      const cid = (item as any).canteenId
+      const isNumeric = typeof cid === "number" || (typeof cid === "string" && /^\d+$/.test(cid))
+      router.push(isNumeric ? `/canteen/${cid}` : "/canteens")
       return
     }
     try {
@@ -355,7 +359,8 @@ function SearchPageContent() {
       } catch {}
       if (existingQty > 0) await updateBackendCartQuantity(Number(item.id), existingQty + 1)
       else await addBackendToCart(item.id, 1)
-      await syncLocalCartFromBackend()
+  await syncLocalCartFromBackend()
+  try { await postAddScheduleCheck(item) } catch {}
     } catch {
       // keep optimistic state
     } finally {
@@ -391,6 +396,62 @@ function SearchPageContent() {
     } finally {
       setBusyItemId(null)
     }
+  }
+
+  function getSelectedTimeHHMM(): string | null {
+    try {
+      const mode = (localStorage.getItem("kleats_schedule_mode") || "asap").toLowerCase()
+      if (mode === "slot") {
+        const slot = localStorage.getItem("kleats_schedule_slot") || ""
+        const m = slot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+        if (m) {
+          let h = parseInt(m[1], 10)
+          const minutes = parseInt(m[2], 10)
+          const ampm = m[3].toUpperCase()
+          if (ampm === "PM" && h !== 12) h += 12
+          if (ampm === "AM" && h === 12) h = 0
+          const hh = String(h).padStart(2, "0")
+          const mm = String(minutes).padStart(2, "0")
+          return `${hh}:${mm}`
+        }
+        return null
+      }
+      if (mode === "custom") {
+        const mins = parseInt(localStorage.getItem("kleats_schedule_mins") || "0", 10)
+        const t = new Date(Date.now() + Math.max(0, mins) * 60000)
+        const hh = String(t.getHours()).padStart(2, "0")
+        const mm = String(t.getMinutes()).padStart(2, "0")
+        return `${hh}:${mm}`
+      }
+      const now = new Date()
+      const hh = String(now.getHours()).padStart(2, "0")
+      const mm = String(now.getMinutes()).padStart(2, "0")
+      return `${hh}:${mm}`
+    } catch {
+      return null
+    }
+  }
+
+  const postAddScheduleCheck = async (item: any) => {
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || ""
+    const targetHHMM = getSelectedTimeHHMM()
+    if (!targetHHMM) return
+    try {
+      const res = await fetch(`${base}/api/explore/item?item_id=${encodeURIComponent(String(item.id))}`, { cache: "no-store" })
+      if (!res.ok) return
+      const data = await res.json()
+      const raw = data?.data
+      const st: string | undefined = (raw?.startTime ? String(raw.startTime).slice(0, 5) : (item as any).startTime) || undefined
+      const et: string | undefined = (raw?.endTime ? String(raw.endTime).slice(0, 5) : (item as any).endTime) || undefined
+      if (!st || !et) return
+      const ok = isTimeWithinWindow(targetHHMM, st, et)
+      if (!ok) {
+        toast({
+          title: "Timing mismatch",
+          description: `${item.name} is available ${st}–${et}. Your selected time ${targetHHMM} is outside this window. You can keep it for later or adjust time in cart.`,
+        })
+      }
+    } catch {}
   }
 
   const clearFilters = () => {
@@ -537,6 +598,7 @@ function SearchPageContent() {
                 canteen: (raw as any).canteen ?? (raw as MenuItem).canteenName,
                 canteenId: ((): number | undefined => { const n = Number((raw as any).canteenId); return Number.isFinite(n) ? n : undefined })(),
               }
+              const unavailable = (raw as any).available === false
               return (
                 <motion.div
                   key={item.id}
@@ -548,6 +610,7 @@ function SearchPageContent() {
                     item={item as any}
                     quantity={cartItems.find((i) => i.id === item.id)?.quantity || 0}
                     isLoading={busyItemId === item.id}
+                    unavailable={unavailable}
                     onAddToCart={() => handleAddToCart(item)}
                     onIncrement={() => handleIncrement(item)}
                     onDecrement={() => handleDecrement(item)}
