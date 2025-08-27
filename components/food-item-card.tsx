@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Plus, Minus, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion, AnimatePresence } from "framer-motion"
+import { memo } from "react"
 
 interface FoodItemCardProps {
   item: {
@@ -27,7 +28,7 @@ interface FoodItemCardProps {
   isLoading?: boolean
 }
 
-export default function FoodItemCard({ item, unavailable = false, onAddToCart, quantity = 0, onIncrement, onDecrement, isLoading = false }: FoodItemCardProps) {
+function FoodItemCard({ item, unavailable = false, onAddToCart, quantity = 0, onIncrement, onDecrement, isLoading = false }: FoodItemCardProps) {
   const handleAction = () => {
     if (onAddToCart) {
       onAddToCart(item)
@@ -85,7 +86,14 @@ export default function FoodItemCard({ item, unavailable = false, onAddToCart, q
           </div>
         </div>
         <div className="relative h-auto w-28 flex-shrink-0">
-          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className={"object-cover " + (unavailable ? "grayscale opacity-60" : "")} />
+          <Image
+            src={item.image || "/placeholder.svg"}
+            alt={item.name}
+            fill
+            className={"object-cover " + (unavailable ? "grayscale opacity-60" : "")}
+            sizes="112px"
+            decoding="async"
+          />
           <AnimatePresence>
             {unavailable && (
               <motion.div
@@ -103,3 +111,5 @@ export default function FoodItemCard({ item, unavailable = false, onAddToCart, q
     </Card>
   )
 }
+
+export default memo(FoodItemCard)

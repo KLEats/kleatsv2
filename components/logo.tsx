@@ -16,6 +16,7 @@ export default function Logo({ className = "", imgClassName = "h-9 w-auto" }: Lo
         width={140}
         height={36}
         priority
+  sizes="(max-width: 768px) 112px, 140px"
         className={imgClassName}
       />
     </Link>

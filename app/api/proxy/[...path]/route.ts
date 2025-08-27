@@ -9,11 +9,12 @@ function getBackendBase() {
   return base.replace(/\/$/, "")
 }
 
-async function proxy(req: Request, ctx: { params: { path?: string[] } }) {
+async function proxy(req: Request, ctx: { params: Promise<{ path?: string[] }> }) {
   const base = getBackendBase()
   const { method } = req
   const url = new URL(req.url)
-  const path = ctx.params?.path?.join("/") || ""
+  const params = await ctx.params
+  const path = params?.path?.join("/") || ""
   const targetUrl = `${base}/${path}${url.search}`
 
   // Clone headers but drop hop-by-hop/unsafe ones

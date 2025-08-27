@@ -696,6 +696,9 @@ export default function Home() {
                                 width={48}
                                 height={48}
                                 className="h-12 w-12 rounded-full object-cover"
+                                sizes="(max-width: 639px) 48px, 48px"
+                                priority={false}
+                                decoding="async"
                               />
                             </div>
                             <h3 className="text-xs font-semibold truncate w-full">{category.name}</h3>
@@ -743,6 +746,8 @@ export default function Home() {
                                   width={60}
                                   height={60}
                                   className="h-15 w-15 rounded-full object-cover"
+                                  sizes="60px"
+                                  decoding="async"
                                 />
                               </div>
                               <h3 className="text-sm font-semibold">{category.name}</h3>
@@ -832,6 +837,9 @@ export default function Home() {
                                 alt={canteen.CanteenName}
                                 fill
                                 className={`object-cover${closed ? " grayscale opacity-70" : ""}`}
+                                sizes="(max-width: 640px) 320px, 400px"
+                                priority={false}
+                                decoding="async"
                               />
                               <Badge className={`absolute right-2 top-2 shadow-md ${open === true ? "bg-green-500 text-white" : "bg-muted text-foreground"}`}>
                                 {open === true ? "Open" : open === false ? "Not available" : "Timing N/A"}
