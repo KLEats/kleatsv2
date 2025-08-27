@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 // Backend-powered search; no local service needed
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+import { isOpenNow } from "@/lib/utils"
 
 interface SearchBarProps {
   value?: string
@@ -72,12 +73,13 @@ export default function SearchBar({
       if (query.trim() && showSuggestions) {
         setIsLoading(true)
         try {
-          const url = `${baseUrl}/api/explore/search/items?q=${encodeURIComponent(query)}&available_now=true&offset=0&limit=50`
+          const url = `${baseUrl}/api/explore/search/items?q=${encodeURIComponent(query)}&offset=0&limit=50`
           const res = await fetch(url, { cache: "no-store" })
           if (!res.ok) throw new Error(`Search HTTP ${res.status}`)
           const json = await res.json()
-          const raw = Array.isArray(json?.data) ? json.data : []
-          let mapped = raw.map((it: any) => ({
+          const raw = (Array.isArray(json?.data) ? json.data : []) as any[]
+          // Exclude items with ava === false; include those outside time windows
+          let mapped = raw.filter((it) => it?.ava !== false).map((it: any) => ({
             id: it.ItemId,
             name: it.ItemName,
             price: it.Price,
@@ -85,6 +87,8 @@ export default function SearchBar({
             description: it.Description,
             canteenId: it.canteenId,
             canteenName: `Canteen ${it.canteenId}`,
+            startTime: it.startTime || null,
+            endTime: it.endTime || null,
           }))
           // Resolve real canteen names
           const neededIds: number[] = Array.from(
@@ -314,7 +318,12 @@ export default function SearchBar({
                     <div className="p-3">
                       <h4 className="text-sm font-medium text-muted-foreground mb-2">Search Results</h4>
                       <div className="space-y-2">
-                        {suggestions.map((item: any) => (
+                        {suggestions.map((item: any) => {
+                          const st = item.startTime ? String(item.startTime).slice(0, 5) : undefined
+                          const et = item.endTime ? String(item.endTime).slice(0, 5) : undefined
+                          const open = isOpenNow(st, et)
+                          const outside = open === false
+                          return (
                           <motion.div
                             key={item.id}
                             initial={{ opacity: 0 }}
@@ -326,13 +335,17 @@ export default function SearchBar({
                               <div className="flex items-center gap-2 text-xs">
                                 <span className="text-muted-foreground truncate">{item.canteenName}</span>
                                 <Badge variant="outline" className="text-xs">₹{item.price}</Badge>
+                                {outside && (
+                                  <Badge variant="outline" className="text-[10px] px-2 py-0.5">Pre-Order</Badge>
+                                )}
                               </div>
                             </div>
                             <Button size="sm" className="rounded-full" onClick={(e) => handleAddClick(e, item)}>
                               Add
                             </Button>
                           </motion.div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   </div>

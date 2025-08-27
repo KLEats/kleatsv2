@@ -70,15 +70,15 @@ export default function FoodItemCard({ item, unavailable = false, onAddToCart, q
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Button size="sm" disabled={isLoading} onClick={handleAction} className="rounded-full">
-                    {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
-                    {isLoading ? "Adding" : "Add"}
-                  </Button>
                   {unavailable && (
                     <Badge variant="outline" className="px-2 py-0.5 text-[10px] rounded-full border-amber-300 text-amber-700 bg-amber-50">
                       Pre-Order
                     </Badge>
                   )}
+                  <Button size="sm" disabled={isLoading} onClick={handleAction} className="rounded-full">
+                    {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
+                    {isLoading ? "Adding" : "Add"}
+                  </Button>
                 </div>
               )}
             </div>

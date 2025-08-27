@@ -23,7 +23,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { toast } from "@/hooks/use-toast"
-import { isTimeWithinWindow } from "@/lib/utils"
+import { isTimeWithinWindow, isOpenNow } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -171,7 +171,7 @@ function SearchPageContent() {
 
     setIsLoading(true)
     try {
-      const url = `${baseUrl}/api/explore/search/items?q=${encodeURIComponent(q)}&available_now=true&offset=0&limit=50`
+  const url = `${baseUrl}/api/explore/search/items?q=${encodeURIComponent(q)}&offset=0&limit=50`
       const res = await fetch(url, { cache: "no-store" })
       if (!res.ok) throw new Error(`Search HTTP ${res.status}`)
       const json = await res.json()
@@ -187,7 +187,8 @@ function SearchPageContent() {
         return Number((4.5 + inc).toFixed(2))
       }
       let mapped: MenuItem[] = rawArr
-        // include unavailable too; UI will gray out and allow add
+        // Exclude ava=false; include those outside their timing window
+        .filter((it) => it?.ava !== false)
         .map((it) => {
           const id = Number(it.ItemId)
           const cId = String(it.canteenId ?? "")
@@ -202,13 +203,15 @@ function SearchPageContent() {
             canteenId: cId,
             canteenName: `Canteen ${it.canteenId}`,
             available: it.ava !== false,
+            startTime: it.startTime ? String(it.startTime).slice(0,5) : undefined,
+            endTime: it.endTime ? String(it.endTime).slice(0,5) : undefined,
             rating: rate(`${id}-${name}`),
             preparationTime: undefined,
             ingredients: undefined,
             nutritionInfo: undefined as any,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          }
+          } as any
         })
       // Attach real canteen names and cache them for reuse
       const mergedCache = await ensureCanteenNames(mapped)
@@ -598,7 +601,10 @@ function SearchPageContent() {
                 canteen: (raw as any).canteen ?? (raw as MenuItem).canteenName,
                 canteenId: ((): number | undefined => { const n = Number((raw as any).canteenId); return Number.isFinite(n) ? n : undefined })(),
               }
-              const unavailable = (raw as any).available === false
+              const st = (raw as any).startTime ? String((raw as any).startTime).slice(0,5) : undefined
+              const et = (raw as any).endTime ? String((raw as any).endTime).slice(0,5) : undefined
+              const open = isOpenNow(st, et)
+              const unavailable = open === false
               return (
                 <motion.div
                   key={item.id}
