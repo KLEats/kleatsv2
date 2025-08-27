@@ -35,7 +35,7 @@ export default function BottomNavigation() {
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 z-20 w-full border-t bg-background">
+    <div data-bottom-nav className="fixed bottom-0 left-0 z-20 w-full border-t bg-background">
       <div className="grid h-16 grid-cols-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href

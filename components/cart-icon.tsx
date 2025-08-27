@@ -10,6 +10,7 @@ export default function CartIcon() {
   const { items, totalPrice, totalItems } = useCart()
   const [isMounted, setIsMounted] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [hasBottomNav, setHasBottomNav] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
@@ -23,6 +24,19 @@ export default function CartIcon() {
     }
   }, [totalItems])
 
+  // Detect presence of bottom navigation (on home only)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const el = document.querySelector('[data-bottom-nav]')
+    setHasBottomNav(!!el)
+    const observer = new MutationObserver(() => {
+      const exists = !!document.querySelector('[data-bottom-nav]')
+      setHasBottomNav(exists)
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
+
   if (!isMounted) return null
   if (totalItems === 0) return null
 
@@ -31,7 +45,7 @@ export default function CartIcon() {
       <Button
         variant="default"
         size="lg"
-  className={`fixed bottom-20 right-4 z-20 h-16 w-auto rounded-full shadow-lg flex items-center gap-2 px-4 ${isAnimating ? "pulse" : ""} bg-primary/60 hover:bg-primary/75 backdrop-blur-md border border-white/20`}
+        className={`fixed right-4 z-30 h-16 w-auto rounded-full shadow-lg flex items-center gap-2 px-4 ${isAnimating ? "pulse" : ""} bg-primary/60 hover:bg-primary/75 backdrop-blur-md border border-white/20 ${hasBottomNav ? 'bottom-[5.25rem]' : 'bottom-[max(1rem,env(safe-area-inset-bottom))]'}`}
       >
         <ShoppingBag className="h-6 w-6" />
         <div className="flex flex-col items-start">
