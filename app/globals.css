@@ -317,3 +317,13 @@
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+/* Hero CSS-only entrance animation (keeps opacity at 1 for better LCP) */
+@keyframes heroIn {
+  from { transform: translateX(-24px); filter: blur(6px); }
+  to { transform: translateX(0); filter: blur(0); }
+}
+
+.hero-animate {
+  animation: heroIn 0.7s ease-out both;
+}

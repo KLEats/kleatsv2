@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import Logo from "@/components/logo"
-import ThemeToggle from "@/components/theme-toggle"
+const ThemeToggle = dynamic(() => import("@/components/theme-toggle"), { ssr: false, loading: () => null })
 import { motion } from "framer-motion"
 import { Star, Clock, Utensils, Copy, Check, ArrowRight, CupSoda, Info } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
-import SearchBar from "@/components/search-bar"
+const SearchBar = dynamic(() => import("@/components/search-bar"), { ssr: false, loading: () => null })
 import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
 import LockOverlay from "@/components/lock-overlay"
 import CartIcon from "@/components/cart-icon"
@@ -237,12 +237,6 @@ export default function Home() {
   }
 
   // Keep splash animation but don’t block initial render; we overlay it instead
-
-  if (homeLoading) {
-    return (
-  <LoadingScreen />
-    )
-  }
 
   if (homeError) {
     return (
@@ -488,12 +482,7 @@ export default function Home() {
         <div className="hero-bg-animation" />
         <div className="container px-4 pt-10 pb-6 md:pt-16 md:pb-12 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
-            <motion.div
-              initial={{ x: -24, filter: "blur(6px)" }}
-              animate={{ x: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              style={{ willChange: "transform, filter" }}
-            >
+            <div className="hero-animate will-change-transform">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
                 Quick, tasty meals from your campus canteens
               </h1>
@@ -525,7 +514,7 @@ export default function Home() {
                   </motion.button>
                 </Link>
               </motion.div>
-            </motion.div>
+            </div>
             <div className="md:pl-6">
               <motion.div
                 className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:overflow-visible"
@@ -891,7 +880,7 @@ export default function Home() {
       <BottomNavigation />
   {isAuthenticated && <CartIcon />}
     </main>
-    {isLoading && (
+  {(isLoading || homeLoading) && (
       <div className="fixed inset-0 z-50 bg-background">
         <LoadingScreen />
       </div>
