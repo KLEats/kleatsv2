@@ -6,6 +6,20 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      {
+        source: "/roles",
+        destination: "https://forms.gle/7BrnhSxBZupUoR617",
+        permanent: true,
+      },
+      {
+        source: "/roles/",
+        destination: "https://forms.gle/7BrnhSxBZupUoR617",
+        permanent: true,
+      },
+    ]
+  },
   async rewrites() {
     return {
       beforeFiles: [
