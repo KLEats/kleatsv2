@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { toast } from "@/hooks/use-toast"
 import { isTimeWithinWindow, isOpenNow } from "@/lib/utils"
+import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -249,14 +250,15 @@ function SearchPageContent() {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
     const url = `${baseUrl}/api/user/cart/addToCart?id=${encodeURIComponent(String(itemId))}&quantity=${encodeURIComponent(String(quantity))}`
-    const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
-    if (!res.ok) throw new Error(await res.text())
+  const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+  if (!res.ok) throw new Error(await res.text())
   }
 
   const updateBackendCartQuantity = async (itemId: number, quantity: number) => {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
-    const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
+  const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
       method: "POST",
       headers: {
         Authorization: token,
@@ -264,7 +266,8 @@ function SearchPageContent() {
       },
       body: JSON.stringify({ itemId, quantity }),
     })
-    if (!res.ok) throw new Error(await res.text())
+  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+  if (!res.ok) throw new Error(await res.text())
   }
 
   const syncLocalCartFromBackend = async () => {
@@ -364,7 +367,12 @@ function SearchPageContent() {
       else await addBackendToCart(item.id, 1)
   await syncLocalCartFromBackend()
   try { await postAddScheduleCheck(item) } catch {}
-    } catch {
+    } catch (e: any) {
+      const msg = String(e?.message || "")
+      if (isAuthMessage(msg)) {
+        authRedirectWithIntent({ itemId: Number(item.id), canteenId: (item as any).canteenId, returnTo: typeof window !== "undefined" ? window.location.pathname + window.location.search : "/" })
+        return
+      }
       // keep optimistic state
     } finally {
       setBusyItemId(null)

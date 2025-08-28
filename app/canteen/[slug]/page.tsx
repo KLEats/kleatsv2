@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
+import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
 
 type CanteenDetails = {
   CanteenName: string
@@ -403,8 +404,9 @@ export default function CanteenPage() {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
     const url = `${baseUrl}/api/user/cart/addToCart?id=${encodeURIComponent(String(itemId))}&quantity=${encodeURIComponent(String(quantity))}`
-    const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
-    if (!res.ok) throw new Error(await res.text())
+  const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+  if (!res.ok) throw new Error(await res.text())
     const json = await safeJson(res)
     if (json && typeof json.code === "number" && json.code !== 1) {
       throw new Error(String(json.message || "Failed to add to cart"))
@@ -414,7 +416,7 @@ export default function CanteenPage() {
   const updateBackendCartQuantity = async (itemId: number, quantity: number) => {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
-    const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
+  const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
       method: "POST",
       headers: {
         Authorization: token,
@@ -422,7 +424,8 @@ export default function CanteenPage() {
       },
       body: JSON.stringify({ itemId, quantity }),
     })
-    if (!res.ok) throw new Error(await res.text())
+  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+  if (!res.ok) throw new Error(await res.text())
     const json = await safeJson(res)
     if (json && typeof json.code === "number" && json.code !== 1) {
       throw new Error(String(json.message || "Failed to update cart"))
@@ -537,14 +540,18 @@ export default function CanteenPage() {
   await syncLocalCartFromBackend()
   try { await postAddScheduleCheck(item) } catch {}
     } catch (e: any) {
-      // Revert optimistic local change and notify user
+      // Revert optimistic local change
       if (current === 0) {
         removeItem(item.id)
       } else {
         updateQuantity(item.id, current)
       }
-      const msg = String(e?.message || "Could not add this item to cart.")
-      toast({ title: "Item not added", description: msg, variant: "destructive" as any })
+      const msg = String(e?.message || "")
+      if (isAuthMessage(msg)) {
+        authRedirectWithIntent({ itemId: Number(item.id), canteenId, returnTo: typeof window !== "undefined" ? window.location.pathname + window.location.search : "/" })
+        return
+      }
+      toast({ title: "Item not added", description: msg || "Could not add this item to cart.", variant: "destructive" as any })
     } finally {
       setBusyItemId(null)
     }

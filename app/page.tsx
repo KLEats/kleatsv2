@@ -18,6 +18,7 @@ import Image from "next/image"
 import Link from "next/link"
 const SearchBar = dynamic(() => import("@/components/search-bar"), { ssr: false, loading: () => null })
 import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
+import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
 import LockOverlay from "@/components/lock-overlay"
 import CartIcon from "@/components/cart-icon"
 import { useCart } from "@/hooks/use-cart"
@@ -272,8 +273,9 @@ export default function Home() {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
     const url = `${baseUrl}/api/user/cart/addToCart?id=${encodeURIComponent(String(itemId))}&quantity=${encodeURIComponent(String(quantity))}`
-    const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
-    if (!res.ok) throw new Error(await res.text())
+  const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+  if (!res.ok) throw new Error(await res.text())
     const json = await safeJson(res)
     if (json && typeof json.code === "number" && json.code !== 1) {
       throw new Error(String(json.message || "Failed to add to cart"))
@@ -283,7 +285,7 @@ export default function Home() {
   const updateBackendCartQuantity = async (itemId: number, quantity: number) => {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
-    const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
+  const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
       method: "POST",
       headers: {
         Authorization: token,
@@ -291,7 +293,8 @@ export default function Home() {
       },
       body: JSON.stringify({ itemId, quantity }),
     })
-    if (!res.ok) throw new Error(await res.text())
+  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+  if (!res.ok) throw new Error(await res.text())
     const json = await safeJson(res)
     if (json && typeof json.code === "number" && json.code !== 1) {
       throw new Error(String(json.message || "Failed to update cart"))
@@ -434,8 +437,13 @@ export default function Home() {
         await syncLocalCartFromBackend()
         try { await postAddScheduleCheck(it) } catch {}
       } catch (e: any) {
+        const msg = String(e?.message || "")
+        if (isAuthMessage(msg)) {
+          authRedirectWithIntent({ itemId: Number(it.id), canteenId: (it as any).canteenId, returnTo: typeof window !== "undefined" ? window.location.pathname + window.location.search : "/" })
+          return
+        }
         // Backend refused; fallback to canteen page
-        toast({ title: "Opening canteen", description: String(e?.message || "We’ll open the canteen to finish adding." ) })
+        toast({ title: "Opening canteen", description: msg || "We’ll open the canteen to finish adding." })
         router.push(canteenHref)
       }
     } catch {

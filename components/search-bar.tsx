@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { isOpenNow } from "@/lib/utils"
+import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
 import { useCart } from "@/hooks/use-cart"
 
 interface SearchBarProps {
@@ -189,8 +190,9 @@ export default function SearchBar({
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
     const url = `${baseUrl}/api/user/cart/addToCart?id=${encodeURIComponent(String(itemId))}&quantity=${encodeURIComponent(String(quantity))}`
-    const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
-    if (!res.ok) throw new Error(await res.text())
+  const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+  if (!res.ok) throw new Error(await res.text())
   }
 
   // Sync local cart state from backend so CartIcon updates immediately
@@ -272,11 +274,14 @@ export default function SearchBar({
   try { if (typeof window !== 'undefined') localStorage.setItem('last_canteen_id', String(canteenId)) } catch {}
   await syncLocalCartFromBackend()
   // Stay on the page; the cart icon will update immediately
-    } catch (err) {
+    } catch (err: any) {
       console.error("Add from search failed", err)
-      try {
-        sessionStorage.setItem("pendingAddToCart", JSON.stringify({ itemId, canteenId }))
-      } catch {}
+      const msg = String(err?.message || "")
+      if (isAuthMessage(msg)) {
+        authRedirectWithIntent({ itemId: Number(itemId), canteenId, returnTo: typeof window !== "undefined" ? window.location.pathname + window.location.search : "/" })
+        return
+      }
+      try { sessionStorage.setItem("pendingAddToCart", JSON.stringify({ itemId, canteenId })) } catch {}
       window.location.href = "/login"
     }
   }
