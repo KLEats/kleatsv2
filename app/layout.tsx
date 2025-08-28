@@ -51,8 +51,8 @@ export default function RootLayout({
         })()}
       </head>
   {/* Google Analytics 4 */}
-  <Script src="https://www.googletagmanager.com/gtag/js?id=G-Y3TDH790Z7" strategy="afterInteractive" />
-  <Script id="ga4-init" strategy="afterInteractive">
+  <Script src="https://www.googletagmanager.com/gtag/js?id=G-Y3TDH790Z7" strategy="lazyOnload" />
+  <Script id="ga4-init" strategy="lazyOnload">
     {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);} 
 gtag('js', new Date());
