@@ -583,7 +583,7 @@ export default function Home() {
                     <div className="min-w-0">
                       <p className="text-sm font-semibold leading-tight clamp-2">Free Sugarcane with every meal</p>
                       <p className="text-[11px] text-muted-foreground clamp-2">
-                        Enter FREECANE at checkout (available after 3:00 PM). One complimentary sugarcane with eligible meal combos. Limited time.
+                        Enter FREECANE at checkout (available after 12:00 PM). One complimentary sugarcane with eligible meal combos. Limited time.
                       </p>
                     </div>
                   </div>
@@ -610,7 +610,7 @@ export default function Home() {
                         <DialogHeader>
                           <DialogTitle>Free Sugarcane with every meal</DialogTitle>
                           <DialogDescription>
-                            Enter <strong>FREECANE</strong> at checkout after <strong>3:00 PM</strong> to enjoy one complimentary sugarcane juice with every eligible item.
+                            Enter <strong>FREECANE</strong> at checkout after <strong>12:00 PM</strong> to enjoy one complimentary sugarcane juice with every eligible item.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="text-sm space-y-2">

@@ -48,13 +48,23 @@ export default function CartPage() {
   const [celebrate, setCelebrate] = useState(false)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
 
-  // FREECANE daily start time check (logic only)
+  // FREECANE daily start time check against the selected pickup/dine time
   const isAfterFreecaneStart = () => {
-    const now = new Date()
-    const h = now.getHours()
-    const m = now.getMinutes()
-    // 2:45 PM local time
-    return h > 14 || (h === 14 && m >= 45)
+    // Use the user-selected time (ASAP -> now; slot/custom -> parsed) from targetHHMM()
+    const when = targetHHMM()
+    let hh = -1
+    let mm = -1
+    if (when && /^(\d{1,2}):(\d{2})$/.test(when)) {
+      const m = when.match(/^(\d{1,2}):(\d{2})$/)!
+      hh = parseInt(m[1]!, 10)
+      mm = parseInt(m[2]!, 10)
+    } else {
+      const now = new Date()
+      hh = now.getHours()
+      mm = now.getMinutes()
+    }
+    // Start threshold: 12:00 (noon)
+    return hh > 12 || (hh === 12 && mm >= 0)
   }
   const FREECANE_TIME_OK = isAfterFreecaneStart()
 
@@ -222,7 +232,7 @@ export default function CartPage() {
       return appliedCoupons
     }
     if (code === "FREECANE" && !FREECANE_TIME_OK) {
-      toast({ title: "Available after 3:00 PM", description: "You can apply FREECANE after 3:00 PM.", variant: "destructive" })
+      toast({ title: "Available after 12:00 PM", description: "You can apply FREECANE after 12:00 PM.", variant: "destructive" })
       return appliedCoupons
     }
     if (code === "FREECANE" && !hasEligibleFreecane) {
@@ -257,7 +267,7 @@ export default function CartPage() {
       return
     }
     if (code === "FREECANE" && !FREECANE_TIME_OK) {
-      toast({ title: "Available after 3:00 PM", description: "FREECANE can be applied after 3:00 PM.", variant: "destructive" })
+      toast({ title: "Available after 12:00 PM", description: "FREECANE can be applied after 12:00 PM.", variant: "destructive" })
       return
     }
     if (appliedCoupons.includes(code)) {
@@ -514,7 +524,7 @@ export default function CartPage() {
                   </AnimatePresence>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  GLUG waives the Gateway Charge. FREECANE (available after 3:00 PM) adds a free Sugarcane juice for each applicable item (Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch).
+                  GLUG waives the Gateway Charge. FREECANE (available after 12:00 PM based on your selected time) adds a free Sugarcane juice for each applicable item (Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch).
                 </p>
                 <AnimatePresence>
                   {freebiesCount > 0 && (
