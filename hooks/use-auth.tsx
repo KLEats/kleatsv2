@@ -85,6 +85,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // Secure ID generator for demo users (avoids Math.random warnings)
+  const generateUserId = () => {
+    try {
+      // Prefer native UUID when available
+      if (typeof crypto !== "undefined" && typeof (crypto as any).randomUUID === "function") {
+        return `user_${(crypto as any).randomUUID()}`
+      }
+      // Fallback to getRandomValues
+      if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+        const bytes = new Uint8Array(16)
+        crypto.getRandomValues(bytes)
+        const hex = Array.from(bytes)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("")
+        return `user_${hex}`
+      }
+    } catch {}
+    // Last resort (non-crypto). Should rarely happen in modern browsers.
+    return `user_${Date.now()}_${Math.floor(Math.random() * 1e9)}`
+  }
+
   // Load user from localStorage on mount
   useEffect(() => {
     try {
@@ -146,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // For demo purposes, create a new customer user if not found
     const newUser = {
-      id: "user_" + Math.random().toString(36).substr(2, 9),
+      id: generateUserId(),
       name: email.split("@")[0],
       email,
       studentId: "2300000000",
@@ -169,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // For demo purposes, always succeed
     const newUser = {
-      id: "user_" + Math.random().toString(36).substr(2, 9),
+      id: generateUserId(),
       name,
       email,
       studentId,
@@ -228,9 +249,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         updateUser,
         isAuthenticated: !!user,
-        isCanteenOwner: !!user && user.role === "canteen_owner",
-        isAdmin: !!user && user.role === "admin",
-        isCanteenWorker: !!user && user.role === "canteen_worker",
+  // In this app, we do not perform role-based redirects for owners/admins/workers.
+  // Keep flags false to avoid accidental UI redirects; dedicated portals handle those roles.
+  isCanteenOwner: false,
+  isAdmin: false,
+  isCanteenWorker: false,
   isInitialized,
       }}
     >
