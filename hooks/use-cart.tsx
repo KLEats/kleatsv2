@@ -72,6 +72,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, isInitialized])
 
+  // Clear in-memory cart immediately on logout broadcast
+  useEffect(() => {
+    const onLogout = () => setItems([])
+    const onSet = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent).detail
+        if (detail && Array.isArray(detail.items)) {
+          setItems(detail.items as CartItem[])
+        }
+      } catch {}
+    }
+    if (typeof window !== "undefined") {
+      window.addEventListener("kleats:logout", onLogout)
+      window.addEventListener("kleats:cart:set", onSet as EventListener)
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("kleats:logout", onLogout)
+        window.removeEventListener("kleats:cart:set", onSet as EventListener)
+      }
+    }
+  }, [])
+
   // Get the current canteen name (if any items in cart)
   const canteenName = items.length > 0 ? items[0].canteen : null
 

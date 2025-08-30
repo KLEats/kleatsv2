@@ -84,6 +84,8 @@ const mockUsers = [
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
+  // Track last user id we hydrated for to avoid duplicate fetches
+  const [hydratedForUserId, setHydratedForUserId] = useState<string | null>(null)
 
   // Secure ID generator for demo users (avoids Math.random warnings)
   const generateUserId = () => {
@@ -135,6 +137,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, isInitialized])
 
+  // Helper to get API base URL and auth token
+  const getApiBase = () => (process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "")
+  const getToken = () => {
+    try {
+      if (typeof window === "undefined") return null
+      return localStorage.getItem("auth_token") || localStorage.getItem("token")
+    } catch {
+      return null
+    }
+  }
+
+  // Hydrate cart from backend once after user logs in (or on refresh with existing user)
+  const hydrateCartFromBackend = async () => {
+    try {
+      const token = getToken()
+      const base = getApiBase()
+      if (!token || !base) return
+      const res = await fetch(`${base}/api/user/cart/getCartItems`, {
+        method: "GET",
+        headers: { Authorization: token },
+        cache: "no-store",
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      const payload = data?.data
+      if (!payload) return
+      const canteenName: string = payload.CanteenName || payload.canteenName || ""
+      const itemsArr: any[] = Array.isArray(payload.cart) ? payload.cart : []
+      const baseUrl = getApiBase()
+      const mapped = itemsArr.map((it) => {
+        const img = it.ImagePath
+          ? `${baseUrl}${String(it.ImagePath).startsWith("/") ? it.ImagePath : `/${it.ImagePath}`}`
+          : "/placeholder.svg"
+        const qty = Number(it.quantity ?? 1) || 1
+        return {
+          id: Number(it.ItemId),
+          name: String(it.ItemName),
+          price: Number(it.Price) || 0,
+          quantity: qty,
+          canteen: canteenName,
+          image: img,
+          category: String(it.category || ""),
+        }
+      })
+      // Broadcast to CartProvider to replace in-memory items immediately
+      try {
+        window.dispatchEvent(
+          new CustomEvent("kleats:cart:set", { detail: { items: mapped } })
+        )
+      } catch {}
+    } catch {}
+  }
+
+  // Run hydration when user changes to a new logged-in user
+  useEffect(() => {
+    if (!user || !isInitialized) return
+    if (hydratedForUserId === user.id) return
+    setHydratedForUserId(user.id)
+    ;(async () => {
+      try {
+        await hydrateCartFromBackend()
+      } catch {}
+    })()
+  }, [user, isInitialized])
+
   const login = async (email: string, password: string) => {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -144,6 +211,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const workerUser = mockUsers.find((u) => u.email === "adda@gmail.com")
       if (workerUser) {
         setUser(workerUser)
+        // Fire and forget cart hydration
+        try { hydrateCartFromBackend() } catch {}
         return true
       }
     }
@@ -153,6 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const adminUser = mockUsers.find((u) => u.email === "admin@gmail.com")
       if (adminUser) {
         setUser(adminUser)
+        try { hydrateCartFromBackend() } catch {}
         return true
       }
     }
@@ -161,8 +231,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const foundUser = mockUsers.find((u) => u.email.toLowerCase() === email.toLowerCase())
 
     if (foundUser) {
-      setUser(foundUser)
-      return true
+  setUser(foundUser)
+  try { hydrateCartFromBackend() } catch {}
+  return true
     }
 
     // For demo purposes, create a new customer user if not found
@@ -174,7 +245,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: "customer" as UserRole,
     }
 
-    setUser(newUser)
+  setUser(newUser)
+  try { hydrateCartFromBackend() } catch {}
     return true
   }
 
@@ -197,7 +269,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role,
     }
 
-    setUser(newUser)
+  setUser(newUser)
+  try { hydrateCartFromBackend() } catch {}
     return true
   }
 
@@ -226,6 +299,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem("auth_token")
           localStorage.removeItem("token")
           localStorage.removeItem("user")
+          // Also clear cart and related client-only scheduling state on logout
+          localStorage.removeItem("cart")
+          localStorage.removeItem("kleats_schedule_mode")
+          localStorage.removeItem("kleats_schedule_slot")
+          localStorage.removeItem("kleats_schedule_mins")
+          // Broadcast a logout event so other providers can reset state
+          try { window.dispatchEvent(new CustomEvent("kleats:logout")) } catch {}
         }
       } catch (e) {
         // Ignore storage errors
