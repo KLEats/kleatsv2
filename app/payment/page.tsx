@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
-import { FREECANE_ENABLED } from "@/lib/utils"
+import { FREECANE_ENABLED, CAMPA4FREE_ENABLED } from "@/lib/utils"
 // Removed interactive slider; time is selected on the cart page
 
 export default function PaymentPage() {
@@ -127,7 +127,7 @@ export default function PaymentPage() {
       const parsed = couponsParam
         .split(",")
         .map((c) => c.trim().toUpperCase())
-        .filter((c) => c === "GLUG" || c === "FREECANE")
+        .filter((c) => c === "GLUG" || c === "FREECANE" || c === "CAMPA4FREE")
       setCoupons(Array.from(new Set(parsed)))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -438,6 +438,12 @@ export default function PaymentPage() {
                   {FREECANE_ENABLED && coupons.includes("FREECANE") && (
                     <motion.div className="flex items-center justify-between" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                       <span>Free Sugarcane (FREECANE)</span>
+                      <span>₹0</span>
+                    </motion.div>
+                  )}
+                  {CAMPA4FREE_ENABLED && coupons.includes("CAMPA4FREE") && (
+                    <motion.div className="flex items-center justify-between" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <span>Free Campa drink (CAMPA4FREE)</span>
                       <span>₹0</span>
                     </motion.div>
                   )}
