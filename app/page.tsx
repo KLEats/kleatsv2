@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 const SearchBar = dynamic(() => import("@/components/search-bar"), { ssr: false, loading: () => null })
-import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
+import { isOpenNow, isTimeWithinWindow, CAMPA4FREE_ENABLED } from "@/lib/utils"
 import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
 import LockOverlay from "@/components/lock-overlay"
 import CartIcon from "@/components/cart-icon"
@@ -572,6 +572,7 @@ export default function Home() {
                 **/}
 
                 {/* Coupon: Free Campa drink with your meal */}
+                {CAMPA4FREE_ENABLED && (
                 <motion.div
                   variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                   className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
@@ -583,7 +584,7 @@ export default function Home() {
                     <div className="min-w-0">
                       <p className="text-sm font-semibold leading-tight clamp-2">Free Campa drink with your meal</p>
                       <p className="text-[11px] text-muted-foreground clamp-2">
-                        Enter CAMPA4FREE at checkout. Get any Campa drink of your choice free (worth up to ₹20) with eligible meal combos. Limited time.
+                        Enter CAMPA4FREE at checkout (available after 12:00 PM). Get any Campa drink of your choice free (worth up to ₹20) with eligible meal combos. Limited time.
                       </p>
                     </div>
                   </div>
@@ -610,7 +611,7 @@ export default function Home() {
                         <DialogHeader>
                           <DialogTitle>Free Campa drink with your meal</DialogTitle>
                           <DialogDescription>
-                            Enter <strong>CAMPA4FREE</strong> at checkout to get any Campa drink of your choice free (worth up to ₹20) with each eligible item.
+                            Enter <strong>CAMPA4FREE</strong> at checkout after <strong>12:00 PM</strong> to get any Campa drink of your choice free (worth up to ₹20) with each eligible item.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="text-sm space-y-2">
@@ -627,6 +628,7 @@ export default function Home() {
                     </Dialog>
                   </div>
                 </motion.div>
+                )}
               </motion.div>
               {/* Students' favorites -> scroll to Popular Items (kept as-is, outside scroller) */}
               <Link href="#popular" className="block mt-3" aria-label="Go to Students’ favorites (Popular Items)">

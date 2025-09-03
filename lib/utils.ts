@@ -46,6 +46,7 @@ export function isOpenNow(fromTime?: string | null, toTime?: string | null): boo
 
 // Coupon feature flags (client-safe; NEXT_PUBLIC_ is inlined at build time)
 export const FREECANE_ENABLED = (process.env.NEXT_PUBLIC_FREECANE_ENABLED ?? "true").toLowerCase() !== "false"
+export const CAMPA4FREE_ENABLED = (process.env.NEXT_PUBLIC_CAMPA4FREE_ENABLED ?? "true").toLowerCase() !== "false"
 
 // Check if a specific HH:mm time lies within a start-end window (HH:mm). Handles overnight windows too.
 export function isTimeWithinWindow(targetHHMM: string, fromTime?: string | null, toTime?: string | null): boolean {

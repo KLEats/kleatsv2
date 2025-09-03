@@ -18,7 +18,7 @@ import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { Slider } from "@/components/ui/slider"
-import { FREECANE_ENABLED, isTimeWithinWindow } from "@/lib/utils"
+import { FREECANE_ENABLED, CAMPA4FREE_ENABLED, isTimeWithinWindow } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function CartPage() {
@@ -48,7 +48,7 @@ export default function CartPage() {
   const [celebrate, setCelebrate] = useState(false)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
 
-  // FREECANE daily start time check against the selected pickup/dine time
+  // CAMPA4FREE daily start time check against the selected pickup/dine time
   const isAfterFreecaneStart = () => {
     // Use the user-selected time (ASAP -> now; slot/custom -> parsed) from targetHHMM()
     const when = targetHHMM()
@@ -218,7 +218,7 @@ export default function CartPage() {
     const cat = (it.category || "").toString()
     return ELIGIBLE_FREECANE.some((c) => c.toLowerCase() === cat.toLowerCase())
   })
-  const freebiesCount = appliedCoupons.includes("FREECANE") && FREECANE_ENABLED && FREECANE_TIME_OK
+  const freebiesCount = appliedCoupons.includes("CAMPA4FREE") && CAMPA4FREE_ENABLED && FREECANE_TIME_OK
     ? items.reduce((sum, it) => {
         const cat = (it.category || "").toString()
         const match = ELIGIBLE_FREECANE.some((c) => c.toLowerCase() === cat.toLowerCase())
@@ -226,17 +226,17 @@ export default function CartPage() {
       }, 0)
     : 0
 
-  const toggleCoupon = (code: "GLUG" | "FREECANE") => {
-    if (code === "FREECANE" && !FREECANE_ENABLED) {
-      toast({ title: "Coupon disabled", description: "FREECANE is currently not available.", variant: "destructive" })
+  const toggleCoupon = (code: "GLUG" | "CAMPA4FREE") => {
+    if (code === "CAMPA4FREE" && !CAMPA4FREE_ENABLED) {
+      toast({ title: "Coupon disabled", description: "CAMPA4FREE is currently not available.", variant: "destructive" })
       return appliedCoupons
     }
-    if (code === "FREECANE" && !FREECANE_TIME_OK) {
-      toast({ title: "Available after 12:00 PM", description: "You can apply FREECANE after 12:00 PM.", variant: "destructive" })
+    if (code === "CAMPA4FREE" && !FREECANE_TIME_OK) {
+      toast({ title: "Available after 12:00 PM", description: "You can apply CAMPA4FREE after 12:00 PM.", variant: "destructive" })
       return appliedCoupons
     }
-    if (code === "FREECANE" && !hasEligibleFreecane) {
-  toast({ title: "No eligible items", description: "FREECANE applies only to Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, or Lunch items.", variant: "destructive" })
+    if (code === "CAMPA4FREE" && !hasEligibleFreecane) {
+      toast({ title: "No eligible items", description: "CAMPA4FREE applies only to Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, or Lunch items.", variant: "destructive" })
       return appliedCoupons
     }
     setAppliedCoupons((prev) => {
@@ -258,16 +258,16 @@ export default function CartPage() {
   const applyCouponFromInput = () => {
     const code = couponInput.trim().toUpperCase()
     if (!code) return
-    if (code !== "GLUG" && code !== "FREECANE") {
+    if (code !== "GLUG" && code !== "CAMPA4FREE") {
       toast({ title: "Invalid coupon", description: "This code isn’t supported.", variant: "destructive" })
       return
     }
-    if (code === "FREECANE" && !FREECANE_ENABLED) {
-      toast({ title: "Coupon disabled", description: "FREECANE is currently not available.", variant: "destructive" })
+    if (code === "CAMPA4FREE" && !CAMPA4FREE_ENABLED) {
+      toast({ title: "Coupon disabled", description: "CAMPA4FREE is currently not available.", variant: "destructive" })
       return
     }
-    if (code === "FREECANE" && !FREECANE_TIME_OK) {
-      toast({ title: "Available after 12:00 PM", description: "FREECANE can be applied after 12:00 PM.", variant: "destructive" })
+    if (code === "CAMPA4FREE" && !FREECANE_TIME_OK) {
+      toast({ title: "Available after 12:00 PM", description: "CAMPA4FREE can be applied after 12:00 PM.", variant: "destructive" })
       return
     }
     if (appliedCoupons.includes(code)) {
@@ -275,11 +275,11 @@ export default function CartPage() {
       toast({ title: "Already applied", description: `${code} is already in use.` })
       return
     }
-    if (code === "FREECANE" && !hasEligibleFreecane) {
-  toast({ title: "No eligible items", description: "Add a Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, or Lunch item to use FREECANE.", variant: "destructive" })
+    if (code === "CAMPA4FREE" && !hasEligibleFreecane) {
+      toast({ title: "No eligible items", description: "Add a Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, or Lunch item to use CAMPA4FREE.", variant: "destructive" })
       return
     }
-    toggleCoupon(code as "GLUG" | "FREECANE")
+    toggleCoupon(code as "GLUG" | "CAMPA4FREE")
     setCouponInput("")
     toast({ title: "Coupon applied", description: `${code} added to your order.` })
   }
@@ -484,7 +484,7 @@ export default function CartPage() {
                 {/* Static coupon chips */}
         <div className="flex flex-wrap gap-2">
                   <AnimatePresence>
-          {[...(FREECANE_ENABLED && FREECANE_TIME_OK ? ["FREECANE"] as const : []), "GLUG" as const].map((code, idx) => {
+          {[...(CAMPA4FREE_ENABLED && FREECANE_TIME_OK ? ["CAMPA4FREE"] as const : []), "GLUG" as const].map((code, idx) => {
                       const active = appliedCoupons.includes(code)
                       return (
                         <motion.div
@@ -497,12 +497,12 @@ export default function CartPage() {
                         >
                           <motion.button
                             className={`relative rounded-full px-3 py-1.5 text-sm border ${active ? "bg-primary text-primary-foreground border-transparent" : "bg-background hover:bg-muted border-input"}`}
-                            onClick={() => toggleCoupon(code as "GLUG" | "FREECANE")}
+                            onClick={() => toggleCoupon(code as "GLUG" | "CAMPA4FREE")}
                             whileHover={{ scale: 1.04 }}
                             whileTap={{ scale: 0.98 }}
                           >
                             <span className="inline-flex items-center">
-                              {code === "FREECANE" ? <Gift className="mr-1 h-4 w-4" /> : null}
+                              {code === "CAMPA4FREE" ? <Gift className="mr-1 h-4 w-4" /> : null}
                               {code}
                             </span>
                             <AnimatePresence>
@@ -524,7 +524,7 @@ export default function CartPage() {
                   </AnimatePresence>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  GLUG waives the Gateway Charge. FREECANE (available after 12:00 PM based on your selected time) adds a free Sugarcane juice for each applicable item (Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch).
+                  GLUG waives the Gateway Charge. CAMPA4FREE (available after 12:00 PM based on your selected time) adds a free Campa drink (worth up to ₹20) for each applicable item (Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch).
                 </p>
                 <AnimatePresence>
                   {freebiesCount > 0 && (
@@ -536,7 +536,7 @@ export default function CartPage() {
                       exit={{ opacity: 0, y: -6 }}
                     >
                       <Gift className="h-4 w-4 text-primary" />
-                      <span>Free Sugarcane juice × {freebiesCount} will be included</span>
+                      <span>Free Campa drink × {freebiesCount} will be included</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -615,9 +615,9 @@ export default function CartPage() {
                     <span>₹{packagingCost}</span>
                   </div>
                 )}
-                {freebiesCount > 0 && (
+        {freebiesCount > 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1"><Gift className="h-4 w-4" /> Free Sugarcane × {freebiesCount}</span>
+          <span className="flex items-center gap-1"><Gift className="h-4 w-4" /> Free Campa drink × {freebiesCount}</span>
                     <span>₹0</span>
                   </div>
                 )}
