@@ -63,8 +63,8 @@ export default function CartPage() {
       hh = now.getHours()
       mm = now.getMinutes()
     }
-    // Start threshold: 12:00 (noon)
-    return hh > 12 || (hh === 12 && mm >= 0)
+  // Start threshold: 02:00 (testing override)
+  return hh > 2 || (hh === 2 && mm >= 0)
   }
   const FREECANE_TIME_OK = isAfterFreecaneStart()
 
