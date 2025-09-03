@@ -571,7 +571,7 @@ export default function Home() {
                 <motion.div ...> ...GLUG content... </motion.div>
                 **/}
 
-                {/* Coupon: Free Sugarcane with every meal (auto-applies) */}
+                {/* Coupon: Free Campa drink with your meal */}
                 <motion.div
                   variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                   className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
@@ -581,19 +581,19 @@ export default function Home() {
                       <CupSoda className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold leading-tight clamp-2">Free Sugarcane with every meal</p>
+                      <p className="text-sm font-semibold leading-tight clamp-2">Free Campa drink with your meal</p>
                       <p className="text-[11px] text-muted-foreground clamp-2">
-                        Enter FREECANE at checkout (available after 12:00 PM). One complimentary sugarcane with eligible meal combos. Limited time.
+                        Enter CAMPA4FREE at checkout. Get any Campa drink of your choice free (worth up to ₹20) with eligible meal combos. Limited time.
                       </p>
                     </div>
                   </div>
                   <div className="p-3 pt-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <code className="rounded bg-muted px-2.5 py-1 text-xs sm:text-sm font-mono font-bold">FREECANE</code>
+                      <code className="rounded bg-muted px-2.5 py-1 text-xs sm:text-sm font-mono font-bold">CAMPA4FREE</code>
                       <button
-                        onClick={() => copyCoupon("FREECANE", 200)}
+                        onClick={() => copyCoupon("CAMPA4FREE", 200)}
                         className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs sm:text-sm hover:bg-secondary"
-                        aria-label="Copy coupon FREECANE"
+                        aria-label="Copy coupon CAMPA4FREE"
                       >
                         {copiedOffer === 200 ? (<><Check className="h-4 w-4 text-green-500" />Copied</>) : (<><Copy className="h-4 w-4" />Copy</>)}
                       </button>
@@ -608,16 +608,16 @@ export default function Home() {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Free Sugarcane with every meal</DialogTitle>
+                          <DialogTitle>Free Campa drink with your meal</DialogTitle>
                           <DialogDescription>
-                            Enter <strong>FREECANE</strong> at checkout after <strong>12:00 PM</strong> to enjoy one complimentary sugarcane juice with every eligible item.
+                            Enter <strong>CAMPA4FREE</strong> at checkout to get any Campa drink of your choice free (worth up to ₹20) with each eligible item.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="text-sm space-y-2">
                           <ul className="list-disc pl-5 space-y-1">
                             <li>Code must be entered before payment and qualifying items must be in cart.</li>
                             <li>Eligible items: Starters (Veg & Non-Veg), Fried Rice, Noodles, Chinese, Pizza, Burgers, Lunch</li>
-                            <li>One free sugarcane per item. Cannot be exchanged or transferred.</li>
+                            <li>Choose any Campa variant/flavour. One free Campa drink per eligible item; maximum MRP covered ₹20.</li>
                             <li>Not valid with other “free item” promotions unless stated.</li>
                             <li>Subject to availability. While supplies last.</li>
                           </ul>
