@@ -20,6 +20,7 @@ interface FoodItemCardProps {
     rating?: number
     preparationTime?: string
   startTime?: string
+  endTime?: string
   }
   unavailable?: boolean
   onAddToCart?: (item: any) => void
@@ -58,6 +59,18 @@ function FoodItemCard({ item, unavailable = false, onAddToCart, quantity = 0, on
             {item.preparationTime && (
               <p className="text-xs text-muted-foreground mb-2">Prep time: {item.preparationTime}</p>
             )}
+            {(item.startTime || item.endTime) && (
+              <p className="text-xs text-muted-foreground mb-2">
+                {(() => {
+                  const st = item.startTime ? String(item.startTime).slice(0, 5) : ""
+                  const et = item.endTime ? String(item.endTime).slice(0, 5) : ""
+                  if (st && et) return `${st} - ${et}`
+                  if (st) return `${st} -`
+                  if (et) return `- ${et}`
+                  return null
+                })()}
+              </p>
+            )}
             <div className="flex items-center justify-between">
               <span className="font-bold text-lg">₹{item.price}</span>
               {quantity > 0 ? (
@@ -73,16 +86,9 @@ function FoodItemCard({ item, unavailable = false, onAddToCart, quantity = 0, on
               ) : (
                 <div className="flex items-center gap-1.5">
                   {unavailable && (
-                    <div className="flex items-center gap-1.5">
-                      <Badge variant="outline" className="px-2 py-0.5 text-[10px] rounded-full border-amber-300 text-amber-700 bg-amber-50 whitespace-nowrap">
-                        Pre-Order
-                      </Badge>
-                      {item.startTime ? (
-                        <Badge variant="outline" className="px-1.5 py-0.5 text-[10px] rounded-full border-muted text-muted-foreground whitespace-nowrap">
-                          {String(item.startTime).slice(0, 5)}
-                        </Badge>
-                      ) : null}
-                    </div>
+                    <Badge variant="outline" className="px-2 py-0.5 text-[10px] rounded-full border-amber-300 text-amber-700 bg-amber-50 whitespace-nowrap">
+                      Pre-Order
+                    </Badge>
                   )}
                   <Button size="sm" disabled={isLoading} onClick={handleAction} className="rounded-full">
                     {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
