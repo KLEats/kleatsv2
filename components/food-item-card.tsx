@@ -119,7 +119,7 @@ function FoodItemCard({ item, unavailable = false, onAddToCart, quantity = 0, on
             src={item.image || "/placeholder.svg"}
             alt={item.name}
             fill
-            className={"object-cover " + (unavailable ? "grayscale opacity-60" : "")}
+            className={"object-cover " + (unavailable ? "grayscale-[80%] opacity-75" : "")}
             sizes="112px"
             decoding="async"
           />
