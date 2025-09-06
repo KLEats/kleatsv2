@@ -7,7 +7,7 @@ import { useCart } from "@/hooks/use-cart"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter, useParams } from "next/navigation"
 import FoodItemCard from "@/components/food-item-card"
-import { motion } from "framer-motion"
+import { motion, useScroll, useTransform } from "framer-motion"
 import { toast } from "@/hooks/use-toast"
 import {
   AlertDialog,
@@ -72,6 +72,11 @@ export default function CategoryPage() {
   const { addItem, items: cartItems, clearCart, updateQuantity, removeItem } = useCart()
   const { isAuthenticated } = useAuth()
   const router = useRouter()
+
+  // Parallax scroll effects
+  const { scrollY } = useScroll()
+  const headerY = useTransform(scrollY, [0, 200], [0, -30])
+  const contentY = useTransform(scrollY, [0, 200], [0, -10])
 
   const [categoryItems, setCategoryItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -418,25 +423,59 @@ export default function CategoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <motion.div 
+        className="min-h-screen flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading category...</p>
+          <motion.div 
+            className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.p 
+            className="text-muted-foreground"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            Loading category...
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <motion.div 
+        className="min-h-screen flex items-center justify-center p-4"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="text-center">
-          <p className="text-destructive mb-4">{error}</p>
-          <Link href="/canteens" className="underline text-primary">
-            Back
-          </Link>
+          <motion.p 
+            className="text-destructive mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            {error}
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Link href="/canteens" className="underline text-primary hover:text-primary/80 transition-colors">
+              Back
+            </Link>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
@@ -467,26 +506,70 @@ export default function CategoryPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <div className="sticky top-0 z-10 flex items-center bg-background p-4 shadow-sm">
+      
+      <motion.div 
+        className="sticky top-0 z-10 flex items-center bg-background p-4 shadow-sm backdrop-blur-sm bg-background/95"
+        style={{ y: headerY }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <Link href={backHref} className="mr-2">
-          <ArrowLeft className="h-5 w-5" />
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: -5 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </motion.div>
         </Link>
-        <h1 className="text-xl font-bold">{categoryName}</h1>
-      </div>
+        <motion.h1 
+          className="text-xl font-bold"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          {categoryName}
+        </motion.h1>
+      </motion.div>
 
-      <div className="container px-4 py-6">
-        <div className="mb-6">
+      <motion.div 
+        className="container px-4 py-6"
+        style={{ y: contentY }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <motion.div 
+          className="mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <p className="text-sm text-muted-foreground mt-2">{categoryItems.length} items available</p>
-        </div>
+        </motion.div>
 
         <div className="grid gap-4">
           {categoryItems.length > 0 ? (
             categoryItems.map((item, index) => (
               <motion.div
                 key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
+                initial={{ opacity: 0, y: 40, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: index * 0.08,
+                  ease: "easeOut",
+                  type: "spring",
+                  stiffness: 100
+                }}
+                whileHover={{ 
+                  y: -8, 
+                  scale: 1.03,
+                  transition: { duration: 0.2, ease: "easeOut" },
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)"
+                }}
+                whileTap={{ scale: 0.97 }}
+                layout
               >
                 <FoodItemCard
                   item={item}
@@ -505,7 +588,7 @@ export default function CategoryPage() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
   <CartIcon />
     </div>
   )

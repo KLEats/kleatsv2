@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
 import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
+import { motion } from "framer-motion"
 
 type CanteenDetails = {
   CanteenName: string
@@ -798,20 +799,36 @@ export default function CanteenPage() {
               </div>
             ) : displayedItems.length > 0 ? (
               <div className="grid gap-4">
-                {displayedItems.map((item) => {
+                {displayedItems.map((item, index) => {
                   const localQty = items.find((i) => i.id === item.id)?.quantity || 0
                   const unavailable = (item as any).available === false
                   return (
-                    <FoodItemCard
+                    <motion.div
                       key={item.id}
-                      item={item}
-                      quantity={localQty}
-                      isLoading={busyItemId === item.id}
-                      unavailable={unavailable}
-                      onAddToCart={handleAddToCart}
-                      onIncrement={() => handleIncrement(item)}
-                      onDecrement={() => handleDecrement(item)}
-                    />
+                      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.1,
+                        ease: "easeOut"
+                      }}
+                      whileHover={{ 
+                        y: -5, 
+                        scale: 1.02,
+                        transition: { duration: 0.2 }
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <FoodItemCard
+                        item={item}
+                        quantity={localQty}
+                        isLoading={busyItemId === item.id}
+                        unavailable={unavailable}
+                        onAddToCart={handleAddToCart}
+                        onIncrement={() => handleIncrement(item)}
+                        onDecrement={() => handleDecrement(item)}
+                      />
+                    </motion.div>
                   )
                 })}
                 {activeTab === 'all' && (
@@ -852,20 +869,36 @@ export default function CanteenPage() {
               </div>
             ) : searchResults.length > 0 ? (
               <div className="grid gap-4">
-                {displayedItems.map((item) => {
+                {displayedItems.map((item, index) => {
                   const localQty = items.find((i) => i.id === item.id)?.quantity || 0
                   const unavailable = (item as any).available === false
                   return (
-                    <FoodItemCard
+                    <motion.div
                       key={item.id}
-                      item={item}
-                      quantity={localQty}
-                      isLoading={busyItemId === item.id}
-                      unavailable={unavailable}
-                      onAddToCart={handleAddToCart}
-                      onIncrement={() => handleIncrement(item)}
-                      onDecrement={() => handleDecrement(item)}
-                    />
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: index * 0.05,
+                        ease: "easeOut"
+                      }}
+                      whileHover={{ 
+                        y: -3, 
+                        scale: 1.01,
+                        transition: { duration: 0.15 }
+                      }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <FoodItemCard
+                        item={item}
+                        quantity={localQty}
+                        isLoading={busyItemId === item.id}
+                        unavailable={unavailable}
+                        onAddToCart={handleAddToCart}
+                        onIncrement={() => handleIncrement(item)}
+                        onDecrement={() => handleDecrement(item)}
+                      />
+                    </motion.div>
                   )
                 })}
               </div>
