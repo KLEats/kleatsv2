@@ -84,17 +84,32 @@ function FoodItemCard({ item, unavailable = false, onAddToCart, quantity = 0, on
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5">
-                  {unavailable && (
-                    <Badge variant="outline" className="px-2 py-0.5 text-[10px] rounded-full border-amber-300 text-amber-700 bg-amber-50 whitespace-nowrap">
-                      Pre-Order
-                    </Badge>
+                <>
+                  {unavailable ? (
+                    <button
+                      disabled={isLoading}
+                      onClick={handleAction}
+                      className="inline-flex flex-col items-stretch overflow-hidden rounded-full text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group"
+                    >
+                      <span className="bg-amber-50 text-amber-800 px-4 py-0.5 text-[10px] font-semibold transition-colors group-hover:bg-amber-100">
+                        Pre-Order
+                      </span>
+                      <span className="bg-primary text-primary-foreground px-4 py-1.5 flex items-center justify-center transition-colors group-hover:bg-primary/90">
+                        {isLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Plus className="h-4 w-4" />
+                        )}
+                        <span className="ml-1 font-bold">{isLoading ? "Adding" : "Add"}</span>
+                      </span>
+                    </button>
+                  ) : (
+                    <Button size="sm" disabled={isLoading} onClick={handleAction} className="rounded-full">
+                      {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
+                      {isLoading ? "Adding" : "Add"}
+                    </Button>
                   )}
-                  <Button size="sm" disabled={isLoading} onClick={handleAction} className="rounded-full">
-                    {isLoading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
-                    {isLoading ? "Adding" : "Add"}
-                  </Button>
-                </div>
+                </>
               )}
             </div>
           </div>
