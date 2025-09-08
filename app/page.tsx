@@ -10,14 +10,14 @@ import dynamic from "next/dynamic"
 import Logo from "@/components/logo"
 const ThemeToggle = dynamic(() => import("@/components/theme-toggle"), { ssr: false, loading: () => null })
 import { motion } from "framer-motion"
-import { Utensils, Copy, Check, CupSoda, Info } from "lucide-react"
+import { Utensils, Copy, Check, Info } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 const SearchBar = dynamic(() => import("@/components/search-bar"), { ssr: false, loading: () => null })
-import { isOpenNow, isTimeWithinWindow, CAMPA4FREE_ENABLED } from "@/lib/utils"
+import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
 import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
 import LockOverlay from "@/components/lock-overlay"
 import CartIcon from "@/components/cart-icon"
@@ -566,37 +566,31 @@ export default function Home() {
                   </div>
                 </motion.div>
 
-                {/* GLUG coupon temporarily disabled — original block kept for reference */}
-                {/**
-                <motion.div ...> ...GLUG content... </motion.div>
-                **/}
-
-                {/* Coupon: Free Campa drink with your meal */}
-                {CAMPA4FREE_ENABLED && (
+                {/* Coupon: Waive Gateway Charge with GLUG */}
                 <motion.div
                   variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                   className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
                 >
                   <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-br from-accent/20 to-transparent">
                     <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                      <CupSoda className="h-5 w-5" />
+                      <Utensils className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold leading-tight clamp-2">Free Campa drink with your meal</p>
+                      <p className="text-sm font-semibold leading-tight clamp-2">No Gateway Fee with GLUG</p>
                       <p className="text-[11px] text-muted-foreground clamp-2">
-                        Enter CAMPA4FREE at checkout (available after 12:00 PM). Get any Campa drink of your choice free (worth up to ₹20) with eligible meal combos. Limited time.
+                        Apply GLUG at checkout to waive the payment gateway charge on your order. Works with other coupons where applicable.
                       </p>
                     </div>
                   </div>
                   <div className="p-3 pt-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <code className="rounded bg-muted px-2.5 py-1 text-xs sm:text-sm font-mono font-bold">CAMPA4FREE</code>
+                      <code className="rounded bg-muted px-2.5 py-1 text-xs sm:text-sm font-mono font-bold">GLUG</code>
                       <button
-                        onClick={() => copyCoupon("CAMPA4FREE", 200)}
+                        onClick={() => copyCoupon("GLUG", 300)}
                         className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs sm:text-sm hover:bg-secondary"
-                        aria-label="Copy coupon CAMPA4FREE"
+                        aria-label="Copy coupon GLUG"
                       >
-                        {copiedOffer === 200 ? (<><Check className="h-4 w-4 text-green-500" />Copied</>) : (<><Copy className="h-4 w-4" />Copy</>)}
+                        {copiedOffer === 300 ? (<><Check className="h-4 w-4 text-green-500" />Copied</>) : (<><Copy className="h-4 w-4" />Copy</>)}
                       </button>
                     </div>
                     <Dialog>
@@ -609,26 +603,23 @@ export default function Home() {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Free Campa drink with your meal</DialogTitle>
+                          <DialogTitle>Waive Gateway Charge with GLUG</DialogTitle>
                           <DialogDescription>
-                            Enter <strong>CAMPA4FREE</strong> at checkout after <strong>12:00 PM</strong> to get any Campa drink of your choice free (worth up to ₹20) with each eligible item.
+                            Enter <strong>GLUG</strong> at checkout to remove the payment gateway charge from your order.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="text-sm space-y-2">
                           <ul className="list-disc pl-5 space-y-1">
-                            <li>Code must be entered before payment and qualifying items must be in cart.</li>
-                            <li>Eligible items: Starters (Veg & Non-Veg), Fried Rice, Noodles, Chinese, Pizza, Burgers, Lunch</li>
-                            <li>Choose any Campa variant/flavour. One free Campa drink per eligible item; maximum MRP covered ₹20.</li>
-                            <li>Not valid with other “free item” promotions unless stated.</li>
-                            <li>Subject to availability. While supplies last.</li>
+                            <li>Applies once per order; the full gateway fee is waived.</li>
+                            <li>Can be combined with other coupons where applicable.</li>
+                            <li>Valid for a limited time; terms may change without notice.</li>
                           </ul>
-                          <p className="text-xs text-muted-foreground">Full terms may be updated. Check the cart before payment.</p>
+                          <p className="text-xs text-muted-foreground">Review your cart to confirm the waiver before payment.</p>
                         </div>
                       </DialogContent>
                     </Dialog>
                   </div>
                 </motion.div>
-                )}
               </motion.div>
               {/* Students' favorites -> scroll to Popular Items (kept as-is, outside scroller) */}
               <Link href="#popular" className="block mt-3" aria-label="Go to Students’ favorites (Popular Items)">

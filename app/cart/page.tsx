@@ -573,9 +573,13 @@ export default function CartPage() {
                     })}
                   </AnimatePresence>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  GLUG waives the Gateway Charge. CAMPA4FREE (available after 12:00 PM based on your selected time) adds a free Campa drink (worth up to ₹20) per eligible item; FREECANE (available after 12:00 PM) adds a free Sugarcane juice per eligible item. Eligible: Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch.
-                </p>
+                {/*
+                  Previous hint (CAMPA/FREECANE) — commented out per request:
+                  <p className="text-xs text-muted-foreground">
+                    GLUG waives the Gateway Charge. CAMPA4FREE (available after 12:00 PM based on your selected time) adds a free Campa drink (worth up to ₹20) per eligible item; FREECANE (available after 12:00 PM) adds a free Sugarcane juice per eligible item. Eligible: Starters, FriedRice, Noodles, Chinese, Pizza, Burgers, Lunch.
+                  </p>
+                */}
+                <p className="text-xs text-muted-foreground">GLUG waives the Gateway Charge.</p>
                 <AnimatePresence>
                   {freebiesCount > 0 && (
                     <motion.div
