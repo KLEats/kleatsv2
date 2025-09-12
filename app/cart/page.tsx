@@ -411,25 +411,27 @@ export default function CartPage() {
               </motion.div>
             )}
 
-            {/* Global packaging toggle */}
-            <div className="mb-4">
-              <Card>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-10 w-10 mr-1 flex items-center justify-center rounded-md bg-muted/60">
-                      <Package className="h-5 w-5" />
+            {/* Global packaging toggle (hidden if any item from restricted canteenId 2) */}
+            {!items.some((i: any) => String((i as any).canteenId) === "2") && (
+              <div className="mb-4">
+                <Card>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-10 w-10 mr-1 flex items-center justify-center rounded-md bg-muted/60">
+                        <Package className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-medium leading-tight">Packaging (all items)</h3>
+                        <p className="text-xs text-muted-foreground truncate">Adds ₹10 per quantity. Toggle applies to your entire cart.</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-medium leading-tight">Packaging (all items)</h3>
-                      <p className="text-xs text-muted-foreground truncate">Adds ₹10 per quantity. Toggle applies to your entire cart.</p>
+                    <div className="flex items-center gap-2">
+                      <Switch checked={allPackagingOn} onCheckedChange={(v) => setPackagingAll(!!v)} id="packaging-all" aria-label="Toggle packaging for all items" />
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={allPackagingOn} onCheckedChange={(v) => setPackagingAll(!!v)} id="packaging-all" aria-label="Toggle packaging for all items" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             <div className="mb-6">
               {items.map((item) => (
