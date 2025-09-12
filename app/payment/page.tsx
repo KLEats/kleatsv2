@@ -82,7 +82,9 @@ export default function PaymentPage() {
 
   const tipAmount = 0
   const baseGateway = Math.ceil(totalPrice * 0.03)
-  const gatewayCharge = coupons.includes("GLUG") ? 0 : baseGateway
+  const hasRestrictedCanteen = items.some((it: any) => String((it as any).canteenId) === "2")
+  const glugAllowed = !hasRestrictedCanteen
+  const gatewayCharge = coupons.includes("GLUG") && glugAllowed ? 0 : baseGateway
   const totalAmount = totalPrice + gatewayCharge + tipAmount
 
   // Generate pickup time options aligned to the next quarter-hour (8 x 15-min slots)

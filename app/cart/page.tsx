@@ -231,7 +231,9 @@ export default function CartPage() {
 
   // Gateway charge: ceil of 3% of the total (including packaging)
   const gatewayCharge = Math.ceil(totalPrice * 0.03)
-  const effectiveGateway = appliedCoupons.includes("GLUG") ? 0 : gatewayCharge
+  const hasRestrictedCanteen = items.some((it: any) => String((it as any).canteenId) === "2")
+  const glugAllowed = !hasRestrictedCanteen
+  const effectiveGateway = appliedCoupons.includes("GLUG") && glugAllowed ? 0 : gatewayCharge
   const ELIGIBLE_FREECANE = ["Starters", "FriedRice", "Noodles", "Pizza", "Burgers", "Lunch", "Chinese"]
   const hasEligibleFreecane = items.some((it) => {
     const cat = (it.category || "").toString()
@@ -249,6 +251,10 @@ export default function CartPage() {
     : 0
 
   const toggleCoupon = (code: "GLUG" | "CAMPA4FREE" | "FREECANE") => {
+    if (code === "GLUG" && hasRestrictedCanteen) {
+      toast({ title: "Not eligible", description: "GLUG isn’t valid for items from this canteen.", variant: "destructive" })
+      return appliedCoupons
+    }
     if (code === "CAMPA4FREE" && !CAMPA4FREE_ENABLED) {
       toast({ title: "Coupon disabled", description: "CAMPA4FREE is currently not available.", variant: "destructive" })
       return appliedCoupons
@@ -294,6 +300,10 @@ export default function CartPage() {
     if (!code) return
     if (code !== "GLUG" && code !== "CAMPA4FREE" && code !== "FREECANE") {
       toast({ title: "Invalid coupon", description: "This code isn’t supported.", variant: "destructive" })
+      return
+    }
+    if (code === "GLUG" && hasRestrictedCanteen) {
+      toast({ title: "Not eligible", description: "GLUG isn’t valid for items from this canteen.", variant: "destructive" })
       return
     }
     if (code === "CAMPA4FREE" && !CAMPA4FREE_ENABLED) {

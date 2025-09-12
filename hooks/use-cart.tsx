@@ -10,6 +10,7 @@ export type CartItem = {
   price: number
   quantity: number
   canteen: string
+  canteenId?: number | string
   image?: string
   packaging?: boolean
   category?: string

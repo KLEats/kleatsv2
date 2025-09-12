@@ -233,7 +233,7 @@ export default function CategoryPage() {
           ? `${baseUrl}${String(it.ImagePath).startsWith("/") ? it.ImagePath : `/${it.ImagePath}`}`
           : "/placeholder.svg"
         const qty = Number(it.quantity ?? 1) || 1
-  addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, image: img, category: String(it.category || "") })
+  addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, canteenId: it.canteenId || it.canteen_id || it.canteen_id_fk, image: img, category: String(it.category || "") })
       })
     } catch {}
   }
@@ -284,7 +284,7 @@ export default function CategoryPage() {
   const current = cartItems.find((i) => i.id === item.id)?.quantity || 0
     try { if (typeof window !== "undefined") localStorage.setItem("last_canteen_id", String(item.canteenId || "")) } catch {}
     if (current === 0) {
-  addItem({ id: item.id, name: item.name, price: item.price, quantity: 1, canteen: item.canteen, image: item.image, category: item.category })
+  addItem({ id: item.id, name: item.name, price: item.price, quantity: 1, canteen: item.canteen, canteenId: item.canteenId || item.canteen_id, image: item.image, category: item.category })
     } else {
       updateQuantity(item.id, current + 1)
     }

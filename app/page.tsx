@@ -322,7 +322,7 @@ export default function Home() {
           ? `${baseUrl}${String(it.ImagePath).startsWith("/") ? it.ImagePath : `/${it.ImagePath}`}`
           : "/placeholder.svg"
         const qty = Number(it.quantity ?? 1) || 1
-        addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, image: img, category: String(it.category || "") })
+  addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, canteenId: it.canteenId || it.canteen_id || it.canteen_id_fk, image: img, category: String(it.category || "") })
       })
     } catch {}
   }
