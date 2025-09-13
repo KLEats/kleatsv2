@@ -47,6 +47,7 @@ export default function CartPage() {
   const [flashCoupon, setFlashCoupon] = useState<string | null>(null)
   const [celebrate, setCelebrate] = useState(false)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
+  const [canteenIdMap, setCanteenIdMap] = useState<Record<number, number | undefined>>({})
 
   // FREECANE daily start time check against the selected pickup/dine time (12:00 PM)
   const isAfterFreecaneStart = () => {
@@ -189,12 +190,16 @@ export default function CartPage() {
     const check = async () => {
       const when = targetHHMM()
       const entries: [number, string][] = []
+      const canteenPairs: [number, number | undefined][] = []
       await Promise.all(
         items.map(async (it) => {
           try {
             const res = await fetch(`${baseUrl}/api/explore/item?item_id=${encodeURIComponent(String(it.id))}`, { cache: "no-store" })
             const json = await res.json().catch(() => ({} as any))
             const raw = json?.data || {}
+            if (raw && (raw.canteenId !== undefined && raw.canteenId !== null)) {
+              canteenPairs.push([it.id, Number(raw.canteenId)])
+            }
             const st = toHHMM(raw?.startTime)
             const et = toHHMM(raw?.endTime)
             const ava = raw?.ava !== false
@@ -219,6 +224,13 @@ export default function CartPage() {
       const map: Record<number, string> = {}
       for (const [id, msg] of entries) map[id] = msg
       setUnavailableMap(map)
+      if (canteenPairs.length > 0) {
+        setCanteenIdMap((prev) => {
+          const next = { ...prev }
+          for (const [id, cid] of canteenPairs) next[id] = cid
+          return next
+        })
+      }
     }
     if (items.length > 0) check()
     else setUnavailableMap({})
@@ -231,7 +243,10 @@ export default function CartPage() {
 
   // Gateway charge: ceil of 3% of the total (including packaging)
   const gatewayCharge = Math.ceil(totalPrice * 0.03)
-  const hasRestrictedCanteen = items.some((it: any) => String((it as any).canteenId) === "2")
+  const hasRestrictedCanteen = items.some((it: any) => {
+    const cid = (it as any).canteenId ?? canteenIdMap[it.id]
+    return String(cid) === "2"
+  })
   const glugAllowed = !hasRestrictedCanteen
   const effectiveGateway = appliedCoupons.includes("GLUG") && glugAllowed ? 0 : gatewayCharge
   const ELIGIBLE_FREECANE = ["Starters", "FriedRice", "Noodles", "Pizza", "Burgers", "Lunch", "Chinese"]
@@ -412,7 +427,7 @@ export default function CartPage() {
             )}
 
             {/* Global packaging toggle (hidden if any item from restricted canteenId 2) */}
-            {!items.some((i: any) => String((i as any).canteenId) === "2") && (
+            {!hasRestrictedCanteen && (
               <div className="mb-4">
                 <Card>
                   <CardContent className="p-4 flex items-center justify-between">
@@ -697,7 +712,7 @@ export default function CartPage() {
                   <span>₹{gatewayCharge}</span>
                 </motion.div>
                 {/* If GLUG is applied, show a separate waiver line offsetting the charge */}
-                {appliedCoupons.includes("GLUG") && (
+                {appliedCoupons.includes("GLUG") && glugAllowed && (
                   <div className="flex items-center justify-between text-muted-foreground">
                     <span>Waived by KL-GLUG</span>
                     <span>-₹{gatewayCharge}</span>
