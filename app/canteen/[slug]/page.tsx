@@ -281,7 +281,7 @@ export default function CanteenPage() {
       setCategoryLoading(true)
       try {
         const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || ""
-        const res = await fetch(`${base}/api/explore/get/items-by-category/${encodeURIComponent(activeTab)}`, {
+        const res = await fetch(`${base}/api/explore/canteen/${encodeURIComponent(String(canteenIdNum))}/items-by-category/${encodeURIComponent(activeTab)}`, {
           cache: "no-store",
         })
         if (!res.ok) throw new Error(`Category HTTP ${res.status}`)
