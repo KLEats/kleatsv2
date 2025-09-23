@@ -241,6 +241,21 @@ export default function CartPage() {
   const packagingCost = items.reduce((total, item) => total + (item.packaging ? 10 * item.quantity : 0), 0)
   const allPackagingOn = items.length > 0 && items.every((i) => !!i.packaging)
 
+  // Mandatory parcel rule: if any item is from canteenId 1 and category is FriedRice or Noodles
+  const mandatoryParcel = items.some((it: any) => {
+    const cid = (it as any).canteenId ?? canteenIdMap[it.id]
+    if (String(cid) !== "1") return false
+    const cat = ((it as any).category || "").toString().replace(/\s+/g, "").toLowerCase()
+    return cat === "friedrice" || cat === "noodles"
+  })
+
+  // Auto-enforce packaging for all items when mandatory rule applies
+  useEffect(() => {
+    if (mandatoryParcel && !allPackagingOn) {
+      setPackagingAll(true)
+    }
+  }, [mandatoryParcel, allPackagingOn, setPackagingAll])
+
   // Gateway charge: ceil of 3% of the total (including packaging)
   const gatewayCharge = Math.ceil(totalPrice * 0.03)
   const hasRestrictedCanteen = items.some((it: any) => {
@@ -437,15 +452,36 @@ export default function CartPage() {
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-medium leading-tight">Packaging (all items)</h3>
-                        <p className="text-xs text-muted-foreground truncate">Adds ₹10 per quantity. Toggle applies to your entire cart.</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          Adds ₹10 per quantity. Toggle applies to your entire cart.
+                        </p>
+                        {mandatoryParcel && (
+                          <p className="text-[11px] text-primary mt-1">Required for FriedRice/Noodles from this canteen.</p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Switch checked={allPackagingOn} onCheckedChange={(v) => setPackagingAll(!!v)} id="packaging-all" aria-label="Toggle packaging for all items" />
+                      <Switch
+                        checked={allPackagingOn}
+                        onCheckedChange={(v) => setPackagingAll(!!v)}
+                        id="packaging-all"
+                        aria-label="Toggle packaging for all items"
+                        disabled={mandatoryParcel}
+                        title={mandatoryParcel ? "Packaging required for selected items" : undefined}
+                      />
                     </div>
                   </CardContent>
                 </Card>
               </div>
+            )}
+            {hasRestrictedCanteen && (
+              <motion.div className="mb-4" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">Packaging isn’t applicable for items from this canteen.</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
 
             <div className="mb-6">
