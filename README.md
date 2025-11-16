@@ -1,4 +1,4 @@
-# KL-Eats 🍽️
+# KL-Eats 
 
 Campus food, without the queue. Pre-order, pay, and pick up. Built on Next.js 15 + React 18 with a slick Tailwind/shadcn UI.
 
