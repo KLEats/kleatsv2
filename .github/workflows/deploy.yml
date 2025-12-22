@@ -18,13 +18,11 @@ jobs:
       - name: Verify checkout
         run: |
           echo "=== Verifying checkout ==="
-          echo "Current directory: $(pwd)"
           ls -la
           if [ -d "app" ]; then
             echo "✅ app/ directory exists"
           else
             echo "❌ app/ directory missing!"
-            git status
             exit 1
           fi
 
@@ -43,63 +41,46 @@ jobs:
           PM=$(node -p "try{require('./package.json').packageManager||''}catch(e){''}") || true
           echo "pm=$PM" >> "$GITHUB_OUTPUT"
 
-      - name: Stop service
-        run: sudo systemctl stop kleats || true
-
-      - name: Sync to deployment directory
-        run: |
-          sudo mkdir -p /root/kleatsv2
-          sudo rsync -av --delete \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='.next' \
-            --exclude='.env*' \
-            --exclude='public/uploads' \
-            ./ /root/kleatsv2/
-
       - name: Remove legacy pages/ if exists
-        run: sudo rm -rf /root/kleatsv2/pages || true
-
-      - name: Sanity check routing (App Router)
-        run: |
-          if sudo test -d /root/kleatsv2/pages; then
-            echo "❌ pages/ exists — App Router conflict"
-            exit 1
-          fi
-          if sudo test -d /root/kleatsv2/app; then
-            echo "✅ Found app/ (App Router)"
-            exit 0
-          fi
-          echo "❌ No App Router found"
-          exit 1
+        run: rm -rf pages || true
 
       - name: Install dependencies (pnpm)
         if: contains(steps.detect_pm.outputs.pm, 'pnpm')
-        run: sudo bash -c 'cd /root/kleatsv2 && corepack enable && corepack pnpm install --frozen-lockfile'
+        run: corepack pnpm install --frozen-lockfile
 
       - name: Install dependencies (yarn)
         if: contains(steps.detect_pm.outputs.pm, 'yarn')
-        run: sudo bash -c 'cd /root/kleatsv2 && corepack enable && corepack yarn install'
+        run: corepack yarn install
 
       - name: Install dependencies (npm fallback)
         if: steps.detect_pm.outputs.pm == ''
-        run: sudo bash -c 'cd /root/kleatsv2 && npm install'
+        run: npm install
 
       - name: Clean previous build artifacts
-        run: sudo rm -rf /root/kleatsv2/.next
+        run: rm -rf .next
 
       - name: Build (pnpm)
         if: contains(steps.detect_pm.outputs.pm, 'pnpm')
-        run: sudo bash -c 'cd /root/kleatsv2 && corepack pnpm build'
+        run: corepack pnpm build
 
       - name: Build (yarn)
         if: contains(steps.detect_pm.outputs.pm, 'yarn')
-        run: sudo bash -c 'cd /root/kleatsv2 && corepack yarn build'
+        run: corepack yarn build
 
       - name: Build (npm fallback)
         if: steps.detect_pm.outputs.pm == ''
-        run: sudo bash -c 'cd /root/kleatsv2 && npm run build'
+        run: npm run build
+
+      - name: Stop service
+        run: sudo systemctl stop kleats || true
+
+      - name: Deploy to /root/kleatsv2
+        run: |
+          sudo mkdir -p /root/kleatsv2
+          sudo rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            ./ /root/kleatsv2/
 
       - name: Restart service
         run: sudo systemctl restart kleats
