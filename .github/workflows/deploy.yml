@@ -35,7 +35,10 @@ jobs:
       - name: Sync code to deployment directory (/root/kleatsv2)
         run: |
           sudo mkdir -p /root/kleatsv2
-          sudo rsync -a --delete \
+          echo "Source directory contents:"
+          ls -la "$GITHUB_WORKSPACE/"
+          echo "---"
+          sudo rsync -av --delete \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='node_modules' \
@@ -43,6 +46,9 @@ jobs:
             --exclude='.env*' \
             --exclude='public/uploads' \
             "$GITHUB_WORKSPACE/" /root/kleatsv2/
+          echo "---"
+          echo "Destination directory contents:"
+          sudo ls -la /root/kleatsv2/
 
       # 🔥 IMPORTANT FIX
       - name: Force App Router (remove pages/)
@@ -54,17 +60,20 @@ jobs:
 
       - name: Sanity check routing (App Router)
         run: |
+          echo "Checking /root/kleatsv2 contents:"
+          sudo ls -la /root/kleatsv2/
+          
           if [ -d /root/kleatsv2/pages ]; then
             echo "❌ pages/ exists — App Router conflict"
             exit 1
           fi
       
-          if [ -d /root/kleatsv2/app ]; then
+          if sudo [ -d /root/kleatsv2/app ]; then
             echo "✅ Found app/ (root App Router)"
             exit 0
           fi
       
-          if [ -d /root/kleatsv2/src/app ]; then
+          if sudo [ -d /root/kleatsv2/src/app ]; then
             echo "✅ Found src/app (App Router)"
             exit 0
           fi
