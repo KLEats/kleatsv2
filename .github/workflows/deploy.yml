@@ -31,45 +31,22 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Detect package manager
-        id: detect_pm
-        shell: bash
-        run: |
-          PM=$(node -p "try{require('./package.json').packageManager||''}catch(e){''}") || true
-          echo "pm=$PM" >> "$GITHUB_OUTPUT"
-
       - name: Remove legacy pages/ if exists
         run: rm -rf pages || true
 
-      - name: Install dependencies (pnpm)
-        if: contains(steps.detect_pm.outputs.pm, 'pnpm')
-        run: corepack pnpm install --frozen-lockfile
-
-      - name: Install dependencies (yarn)
-        if: contains(steps.detect_pm.outputs.pm, 'yarn')
-        run: corepack yarn install
-
-      - name: Install dependencies (npm fallback)
-        if: steps.detect_pm.outputs.pm == ''
-        run: npm install
+      # Use npm for installation (less memory than pnpm) due to limited RAM on runner
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        env:
+          NODE_OPTIONS: "--max-old-space-size=512"
 
       - name: Clean previous build artifacts
         run: rm -rf .next
 
-      - name: Build (pnpm)
-        if: contains(steps.detect_pm.outputs.pm, 'pnpm')
-        run: corepack pnpm build
-
-      - name: Build (yarn)
-        if: contains(steps.detect_pm.outputs.pm, 'yarn')
-        run: corepack yarn build
-
-      - name: Build (npm fallback)
-        if: steps.detect_pm.outputs.pm == ''
+      - name: Build
         run: npm run build
+        env:
+          NODE_OPTIONS: "--max-old-space-size=1024"
 
       - name: Stop service
         run: sudo systemctl stop kleats || true
