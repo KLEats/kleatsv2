@@ -9,10 +9,35 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Clean workspace
+        run: |
+          rm -rf "$GITHUB_WORKSPACE"/*
+          rm -rf "$GITHUB_WORKSPACE"/.[!.]*
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          clean: true
+
+      - name: Verify checkout
+        run: |
+          echo "=== Verifying checkout ==="
+          echo "Current directory: $(pwd)"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          ls -la
+          echo "---"
+          if [ -d "app" ]; then
+            echo "✅ app/ directory exists"
+            ls -la app/
+          else
+            echo "❌ app/ directory missing!"
+            echo "Git status:"
+            git status
+            echo "Git log:"
+            git log --oneline -5
+            exit 1
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -30,15 +55,12 @@ jobs:
           echo "pm=$PM" >> "$GITHUB_OUTPUT"
 
       - name: Stop service
-        run: sudo systemctl stop kleats || true
+        run: sudo -n systemctl stop kleats || true
 
       - name: Sync code to deployment directory (/root/kleatsv2)
         run: |
-          sudo mkdir -p /root/kleatsv2
-          echo "Source directory contents:"
-          ls -la "$GITHUB_WORKSPACE/"
-          echo "---"
-          sudo rsync -av --delete \
+          sudo -n mkdir -p /root/kleatsv2
+          sudo -n rsync -av --delete \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='node_modules' \
@@ -46,34 +68,28 @@ jobs:
             --exclude='.env*' \
             --exclude='public/uploads' \
             "$GITHUB_WORKSPACE/" /root/kleatsv2/
-          echo "---"
-          echo "Destination directory contents:"
-          sudo ls -la /root/kleatsv2/
 
       # 🔥 IMPORTANT FIX
       - name: Force App Router (remove pages/)
         run: |
-          if [ -d /root/kleatsv2/pages ]; then
+          if sudo -n test -d /root/kleatsv2/pages; then
             echo "Removing legacy pages/ directory"
-            sudo rm -rf /root/kleatsv2/pages
+            sudo -n rm -rf /root/kleatsv2/pages
           fi
 
       - name: Sanity check routing (App Router)
         run: |
-          echo "Checking /root/kleatsv2 contents:"
-          sudo ls -la /root/kleatsv2/
-          
-          if [ -d /root/kleatsv2/pages ]; then
+          if sudo -n test -d /root/kleatsv2/pages; then
             echo "❌ pages/ exists — App Router conflict"
             exit 1
           fi
       
-          if sudo [ -d /root/kleatsv2/app ]; then
+          if sudo -n test -d /root/kleatsv2/app; then
             echo "✅ Found app/ (root App Router)"
             exit 0
           fi
       
-          if sudo [ -d /root/kleatsv2/src/app ]; then
+          if sudo -n test -d /root/kleatsv2/src/app; then
             echo "✅ Found src/app (App Router)"
             exit 0
           fi
