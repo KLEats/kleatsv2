@@ -9,7 +9,7 @@ Campus food, without the queue. Pre-order, pay, and pick up. Built on Next.js 15
 - Dark mode (next-themes) and buttery animations (framer-motion)
 
 ## � Quickstart
-Prereqs: Node 18+, pnpm or npm
+Prereqs: Node 18+ npm
 
 Dev on localhost:
 - pnpm: install + dev
