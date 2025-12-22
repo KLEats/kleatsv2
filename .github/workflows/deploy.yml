@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,9 +26,7 @@ jobs:
         id: detect_pm
         shell: bash
         run: |
-          FILE="$GITHUB_WORKSPACE/package.json"
-          PM=$(node -p "try{require(process.env.GITHUB_WORKSPACE + '/package.json').packageManager||''}catch(e){''}") || true
-          echo "Detected packageManager: $PM (from $FILE)"
+          PM=$(node -p "try{require('./package.json').packageManager||''}catch(e){''}") || true
           echo "pm=$PM" >> "$GITHUB_OUTPUT"
 
       - name: Stop service
@@ -36,28 +35,37 @@ jobs:
       - name: Sync code to deployment directory (/root/kleatsv2)
         run: |
           sudo mkdir -p /root/kleatsv2
-          if ! command -v rsync >/dev/null 2>&1; then \
-            echo "rsync not found; installing"; \
-            sudo apt-get update -y && sudo apt-get install -y rsync; \
-          fi
-          # Sync repo while preserving server-only files and persistent assets
-          # - Keep: .env*, public/uploads, existing node_modules if any (we'll reinstall), and .next will be rebuilt
           sudo rsync -a --delete \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='node_modules' \
             --exclude='.next' \
-            --exclude='.env' \
-            --exclude='.env.local' \
-            --exclude='.env.production' \
-            --exclude='.env.*' \
+            --exclude='.env*' \
             --exclude='public/uploads' \
             "$GITHUB_WORKSPACE/" /root/kleatsv2/
 
+      # 🔥 IMPORTANT FIX
+      - name: Force App Router (remove pages/)
+        run: |
+          if [ -d /root/kleatsv2/pages ]; then
+            echo "Removing legacy pages/ directory"
+            sudo rm -rf /root/kleatsv2/pages
+          fi
+
+      - name: Sanity check routing
+        run: |
+          if [ -d /root/kleatsv2/pages ]; then
+            echo "❌ pages/ still exists — aborting"
+            exit 1
+          fi
+          if [ ! -d /root/kleatsv2/app ]; then
+            echo "❌ app/ directory missing — aborting"
+            exit 1
+          fi
+
       - name: Install dependencies (yarn)
         if: contains(steps.detect_pm.outputs.pm, 'yarn')
-        run: |
-          sudo -n corepack yarn --cwd /root/kleatsv2 install --immutable || sudo -n corepack yarn --cwd /root/kleatsv2 install
+        run: sudo -n corepack yarn --cwd /root/kleatsv2 install --immutable || sudo -n corepack yarn --cwd /root/kleatsv2 install
 
       - name: Install dependencies (pnpm)
         if: contains(steps.detect_pm.outputs.pm, 'pnpm')
@@ -66,10 +74,10 @@ jobs:
       - name: Install dependencies (npm fallback)
         if: steps.detect_pm.outputs.pm == ''
         run: |
-          if [ -f /root/kleatsv2/package-lock.json ]; then \
-            sudo -n npm --prefix /root/kleatsv2 ci; \
-          else \
-            sudo -n npm --prefix /root/kleatsv2 install; \
+          if [ -f /root/kleatsv2/package-lock.json ]; then
+            sudo -n npm --prefix /root/kleatsv2 ci
+          else
+            sudo -n npm --prefix /root/kleatsv2 install
           fi
 
       - name: Clean previous build artifacts
