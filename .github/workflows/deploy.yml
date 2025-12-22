@@ -52,16 +52,25 @@ jobs:
             sudo rm -rf /root/kleatsv2/pages
           fi
 
-      - name: Sanity check routing
+      - name: Sanity check routing (App Router)
         run: |
           if [ -d /root/kleatsv2/pages ]; then
-            echo "❌ pages/ still exists — aborting"
+            echo "❌ pages/ exists — App Router conflict"
             exit 1
           fi
-          if [ ! -d /root/kleatsv2/app ]; then
-            echo "❌ app/ directory missing — aborting"
-            exit 1
+      
+          if [ -d /root/kleatsv2/app ]; then
+            echo "✅ Found app/ (root App Router)"
+            exit 0
           fi
+      
+          if [ -d /root/kleatsv2/src/app ]; then
+            echo "✅ Found src/app (App Router)"
+            exit 0
+          fi
+      
+          echo "❌ No App Router found (app/ or src/app missing)"
+          exit 1
 
       - name: Install dependencies (yarn)
         if: contains(steps.detect_pm.outputs.pm, 'yarn')
