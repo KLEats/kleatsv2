@@ -33,34 +33,18 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="" />
         <link rel="dns-prefetch" href="//www.google-analytics.com" />
-        {/* Conditionally preconnect to the public API origin if configured */}
-        {(() => {
-          try {
-            const raw = process.env.NEXT_PUBLIC_API_URL
-            if (!raw) return null
-            const u = new URL(raw)
-            return (
-              <>
-                <link rel="preconnect" href={u.origin} crossOrigin="" />
-                <link rel="dns-prefetch" href={`//${u.host}`} />
-              </>
-            )
-          } catch {
-            return null
-          }
-        })()}
       </head>
-  {/* Google Analytics 4 */}
-  <Script src="https://www.googletagmanager.com/gtag/js?id=G-Y3TDH790Z7" strategy="lazyOnload" />
-  <Script id="ga4-init" strategy="lazyOnload">
-    {`window.dataLayer = window.dataLayer || [];
+      <body className={inter.className}>
+        {/* Google Analytics 4 */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-Y3TDH790Z7" strategy="lazyOnload" />
+        <Script id="ga4-init" strategy="lazyOnload">
+          {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);} 
 gtag('js', new Date());
 gtag('config', 'G-Y3TDH790Z7', { anonymize_ip: true });`}
-  </Script>
-  {/* End Google Analytics 4 */}
-      <body className={inter.className}>
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        </Script>
+        {/* End Google Analytics 4 */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Providers>
             {children}
             <Toaster />

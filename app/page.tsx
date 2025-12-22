@@ -1,31 +1,31 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import LoadingScreen from "@/components/loading-screen"
-import type { MenuItem } from "@/services/canteen-service"
-import FoodItemCard from "@/components/food-item-card"
-import { useAuth } from "@/hooks/use-auth"
-import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
-import Logo from "@/components/logo"
-const ThemeToggle = dynamic(() => import("@/components/theme-toggle"), { ssr: false, loading: () => null })
+import { useRouter } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { Utensils, Copy, Check, Info } from "lucide-react"
+
+import type { MenuItem } from "@/services/canteen-service"
+import LoadingScreen from "@/components/loading-screen"
+import FoodItemCard from "@/components/food-item-card"
+import { useAuth } from "@/hooks/use-auth"
+import Logo from "@/components/logo"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import Image from "next/image"
-import Link from "next/link"
-const SearchBar = dynamic(() => import("@/components/search-bar"), { ssr: false, loading: () => null })
 import { isOpenNow, isTimeWithinWindow } from "@/lib/utils"
 import { authRedirectWithIntent, isAuthMessage } from "@/lib/auth"
 import LockOverlay from "@/components/lock-overlay"
 import CartIcon from "@/components/cart-icon"
 import { useCart } from "@/hooks/use-cart"
 import { toast } from "@/hooks/use-toast"
-// import ContactUs from "./contact/page"
 
 // Defer non-critical UI to reduce initial main-thread work (no UX change)
+const ThemeToggle = dynamic(() => import("@/components/theme-toggle"), { ssr: false, loading: () => null })
+const SearchBar = dynamic(() => import("@/components/search-bar"), { ssr: false, loading: () => null })
 const Footer = dynamic(() => import("@/components/footer"), { loading: () => null })
 const BottomNavigation = dynamic(() => import("@/components/bottom-navigation"), { loading: () => null })
 const PopularSection = dynamic(() => import("@/components/home-popular"), { ssr: false, loading: () => null })
