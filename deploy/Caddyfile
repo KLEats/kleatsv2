@@ -1,0 +1,37 @@
+# Caddyfile for KLEats frontend with HTTP/2 and HTTP/3
+# Terminate TLS and proxy to Next.js app running on 127.0.0.1:3001
+# Also proxy Cashfree webhook directly to backend on 127.0.0.1:3000
+
+# Replace with your actual domains
+kleats.in, www.kleats.in {
+  # Enable automatic HTTPS and H2/H3
+  encode zstd gzip
+
+  # Health check (optional)
+  @health path /health
+  respond @health 200 {
+    body "ok"
+  }
+
+  # Cashfree webhook direct to backend (adjust BACKEND if needed)
+  @cashfree {
+    path /cashfree/webhook
+    method POST
+  }
+  handle @cashfree {
+    reverse_proxy http://127.0.0.1:3000
+  }
+
+  # All other routes to Next.js frontend app
+  handle {
+    reverse_proxy 127.0.0.1:3001
+  }
+
+  # Security headers (optional)
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy no-referrer-when-downgrade
+  }
+}

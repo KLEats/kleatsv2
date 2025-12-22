@@ -5,11 +5,10 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/root/kleatsv2
+EnvironmentFile=/root/kleatsv2/.env.local
 Environment=NODE_ENV=production
-Environment=SSL_KEY_PATH=/etc/letsencrypt/live/kleats.in/privkey.pem
-Environment=SSL_CERT_PATH=/etc/letsencrypt/live/kleats.in/fullchain.pem
-# If using pnpm, use the absolute path to pnpm; corepack-managed pnpm is available in PATH for the runner
-ExecStart=/usr/bin/npm start
+Environment=FRONTEND_PORT=3001
+ExecStart=/usr/bin/node /root/kleatsv2/server.mjs
 Restart=always
 RestartSec=10
 User=root
