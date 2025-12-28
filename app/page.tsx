@@ -454,17 +454,7 @@ export default function Home() {
 
   function MaintenanceBanner() {
     const forceShow = String(process.env.NEXT_PUBLIC_MAINTENANCE ?? "").toLowerCase() === "true"
-    const [show, setShow] = useState(() => {
-      if (typeof window === "undefined") return forceShow
-      if (forceShow) return true
-      return sessionStorage.getItem("kleats_maintenance_dismissed") ? false : true
-    })
-
-    useEffect(() => {
-      if (!show) sessionStorage.setItem("kleats_maintenance_dismissed", "1")
-    }, [show])
-
-    if (!show) return null
+    if (!forceShow) return null
 
     return (
       <div className="container mx-auto px-4 mt-3">
@@ -475,15 +465,6 @@ export default function Home() {
               KL Eats is currently in maintenance mode so please don't place any orders right now, thank you for understanding.
             </AlertDescription>
           </div>
-          {!forceShow && (
-            <button
-              aria-label="Dismiss maintenance alert"
-              onClick={() => setShow(false)}
-              className="text-muted-foreground rounded-md p-2 hover:bg-muted/50"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
         </Alert>
       </div>
     )
