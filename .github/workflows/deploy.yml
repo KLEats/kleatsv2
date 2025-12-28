@@ -34,9 +34,9 @@ jobs:
       - name: Remove legacy pages/ if exists
         run: rm -rf pages || true
 
-      # Use npm for installation (less memory than pnpm) due to limited RAM on runner
+      # Use pnpm for installation and build for consistency
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: pnpm install
         env:
           NODE_OPTIONS: "--max-old-space-size=512"
 
@@ -44,7 +44,7 @@ jobs:
         run: rm -rf .next
 
       - name: Build
-        run: npm run build
+        run: pnpm build
         env:
           NODE_OPTIONS: "--max-old-space-size=1024"
 
