@@ -536,7 +536,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
             <div className="hero-animate will-change-transform">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
-                Quick, tasty meals from your campus canteens
+                KL Eats is currently <span className="text-primary">under maintenance</span>, avoid placing orders for now.
               </h1>
               <p className="mt-3 md:mt-4 text-muted-foreground text-sm md:text-base max-w-xl">
                 Discover popular items, browse categories, and order in seconds. Fresh, fast, and right around the corner.
