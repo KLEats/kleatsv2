@@ -51,16 +51,16 @@ jobs:
       - name: Stop pm2 frontend
         run: pm2 stop kleats-frontend || true
 
-      - name: Deploy to /home/runner/kleatsv2
+      - name: Deploy to /root/kleatsv2
         run: |
-          mkdir -p /home/runner/kleatsv2
-          rsync -a --delete \
+          sudo mkdir -p /root/kleatsv2
+          sudo rsync -a --delete \
             --exclude='.git' \
             --exclude='.github' \
-            ./ /home/runner/kleatsv2/
+            ./ /root/kleatsv2/
 
       - name: Start pm2 frontend
         run: |
-          cd /home/runner/kleatsv2
+          cd /root/kleatsv2
           pm2 start pnpm --name kleats-frontend -- start
           pm2 save
