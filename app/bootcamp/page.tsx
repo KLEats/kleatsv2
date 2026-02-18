@@ -378,34 +378,38 @@ export default function BootcampPage() {
                 }
 
                 // Step 4: Redirect to payment gateway
+                const provider = (orderData?.provider || orderData?.gateway || "").toString().toLowerCase()
                 const webLink: string | undefined = orderData?.payment_links?.web || orderData?.payment_link || orderData?.redirect_url || orderData?.raw?.redirect_url
                 const sessionId: string | undefined = orderData?.raw?.payment_session_id || orderData?.payment_session_id
 
-                if (CASHFREE_ENABLED && (webLink || sessionId)) {
+                console.log("[Bootcamp] placeOrder response:", { provider, webLink: !!webLink, sessionId: !!sessionId, CASHFREE_ENABLED, orderData })
+
+                // Cashfree-specific handling (matching payment page logic exactly)
+                if (CASHFREE_ENABLED && (provider === "cashfree" || !!sessionId)) {
                     if (webLink && typeof window !== "undefined") {
                         window.location.href = webLink
                         return
                     }
                     if (sessionId) {
-                        await loadCashfreeAndCheckout(sessionId)
-                        return
+                        try {
+                            await loadCashfreeAndCheckout(sessionId)
+                            return
+                        } catch (e) {
+                            throw new Error("Unable to start Cashfree checkout. Please try again.")
+                        }
                     }
+                    // Cashfree expected but no redirect — block, don't silently save
+                    throw new Error("Payment gateway did not return a redirect. Please try again or contact support.")
                 }
 
-                // Fallback: if no payment redirect, save registration directly
-                sessionStorage.removeItem("bootcamp_registration")
-                registrationData.paymentStatus = "paid"
-                const regRes = await fetch("/api/bootcamp/register", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(registrationData),
-                })
-                const regData = await regRes.json()
-                if (!regRes.ok || regData.code !== 1) {
-                    throw new Error(regData.message || "Registration failed")
+                // Generic hosted payment page redirect (other gateways)
+                if (webLink && typeof window !== "undefined") {
+                    window.location.href = webLink
+                    return
                 }
-                setIsSuccess(true)
-                toast({ title: "Registration Successful! 🎉", description: "You're all set for the bootcamp." })
+
+                // If we reach here, payment wasn't initiated — throw error, don't save
+                throw new Error("Payment could not be initiated. Please try again or contact support.")
             } else {
                 // Hostler: save immediately (no payment needed)
                 const res = await fetch("/api/bootcamp/register", {
