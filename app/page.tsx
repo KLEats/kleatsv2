@@ -73,7 +73,7 @@ export default function Home() {
     const arr = [...apiCategories]
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+        ;[arr[i], arr[j]] = [arr[j], arr[i]]
     }
     return arr
   }, [apiCategories])
@@ -143,9 +143,9 @@ export default function Home() {
   // Load real popular items from backend
   useEffect(() => {
     let mounted = true
-  const loadPopular = async () => {
+    const loadPopular = async () => {
       try {
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://188.245.112.188:3000"
+        const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || ""
         const res = await fetch(`${base}/api/explore/get/popular-items`, { cache: "no-store" })
         if (!res.ok) throw new Error(`Popular HTTP ${res.status}`)
         const json = await res.json()
@@ -274,9 +274,9 @@ export default function Home() {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
     const url = `${baseUrl}/api/user/cart/addToCart?id=${encodeURIComponent(String(itemId))}&quantity=${encodeURIComponent(String(quantity))}`
-  const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
-  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
-  if (!res.ok) throw new Error(await res.text())
+    const res = await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
+    if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+    if (!res.ok) throw new Error(await res.text())
     const json = await safeJson(res)
     if (json && typeof json.code === "number" && json.code !== 1) {
       throw new Error(String(json.message || "Failed to add to cart"))
@@ -286,7 +286,7 @@ export default function Home() {
   const updateBackendCartQuantity = async (itemId: number, quantity: number) => {
     const token = getToken()
     if (!token) throw new Error("Not authenticated")
-  const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
+    const res = await fetch(`${baseUrl}/api/user/cart/updateCart`, {
       method: "POST",
       headers: {
         Authorization: token,
@@ -294,8 +294,8 @@ export default function Home() {
       },
       body: JSON.stringify({ itemId, quantity }),
     })
-  if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
-  if (!res.ok) throw new Error(await res.text())
+    if (res.status === 401 || res.status === 403) throw new Error("Unauthorized: invalid token")
+    if (!res.ok) throw new Error(await res.text())
     const json = await safeJson(res)
     if (json && typeof json.code === "number" && json.code !== 1) {
       throw new Error(String(json.message || "Failed to update cart"))
@@ -323,9 +323,9 @@ export default function Home() {
           ? `${baseUrl}${String(it.ImagePath).startsWith("/") ? it.ImagePath : `/${it.ImagePath}`}`
           : "/placeholder.svg"
         const qty = Number(it.quantity ?? 1) || 1
-  addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, canteenId: it.canteenId || it.canteen_id || it.canteen_id_fk, image: img, category: String(it.category || "") })
+        addItem({ id: Number(it.ItemId), name: it.ItemName, price: Number(it.Price) || 0, quantity: qty, canteen: canteenName, canteenId: it.canteenId || it.canteen_id || it.canteen_id_fk, image: img, category: String(it.category || "") })
       })
-    } catch {}
+    } catch { }
   }
 
   function getSelectedTimeHHMM(): string | null {
@@ -381,7 +381,7 @@ export default function Home() {
           description: `${item.name} is available ${st}–${et}. Your selected time ${targetHHMM} is outside this window. You can keep it for later or adjust time in cart.`,
         })
       }
-    } catch {}
+    } catch { }
   }
 
   const handlePopularAdd = async (it: any) => {
@@ -414,7 +414,7 @@ export default function Home() {
             }
           }
         }
-      } catch {}
+      } catch { }
       if (different) {
         // Open canteen for explicit switch/confirmation UX
         router.push(canteenHref)
@@ -432,11 +432,11 @@ export default function Home() {
             const found = arr.find((x) => Number(x.ItemId) === Number(it.id))
             if (found) existingQty = Number(found.quantity ?? 1) || 1
           }
-        } catch {}
+        } catch { }
         if (existingQty > 0) await updateBackendCartQuantity(Number(it.id), existingQty + 1)
         else await addBackendToCart(it.id, 1)
         await syncLocalCartFromBackend()
-        try { await postAddScheduleCheck(it) } catch {}
+        try { await postAddScheduleCheck(it) } catch { }
       } catch (e: any) {
         const msg = String(e?.message || "")
         if (isAuthMessage(msg)) {
@@ -472,219 +472,219 @@ export default function Home() {
 
   return (
     <>
-    <LockOverlay open={locked} onUnlock={() => setLocked(false)} />
-    <main className={`min-h-screen pb-24 page-transition ${locked ? "blur-sm pointer-events-none select-none" : ""}`}>
-      {/* Top Bar */}
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b">
-        <div className="container mx-auto flex items-center justify-between">
-          <Logo imgClassName="h-10 w-auto md:h-11" />
-          <div className="hidden md:block md:w-1/3">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search for food..." />
-          </div>
-          <div className="hidden md:flex md:items-center md:gap-2">
-            <ThemeToggle />
-            {!isAuthenticated ? (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <button
-                  onClick={() => router.push("/login")}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white"
-                >
-                  Login
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <button
-                  onClick={() => router.push("/account")}
-                  className="rounded-md bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
-                >
-                  My Account
-                </button>
-              </motion.div>
-            )}
+      <LockOverlay open={locked} onUnlock={() => setLocked(false)} />
+      <main className={`min-h-screen pb-24 page-transition ${locked ? "blur-sm pointer-events-none select-none" : ""}`}>
+        {/* Top Bar */}
+        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b">
+          <div className="container mx-auto flex items-center justify-between">
+            <Logo imgClassName="h-10 w-auto md:h-11" />
+            <div className="hidden md:block md:w-1/3">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search for food..." />
+            </div>
+            <div className="hidden md:flex md:items-center md:gap-2">
+              <ThemeToggle />
+              {!isAuthenticated ? (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <button
+                    onClick={() => router.push("/login")}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white"
+                  >
+                    Login
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <button
+                    onClick={() => router.push("/account")}
+                    className="rounded-md bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
+                  >
+                    My Account
+                  </button>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Static, clean hero without parallax/animations */}
-      {/* Maintenance banner */}
-      {typeof window !== "undefined" && (
-        <MaintenanceBanner />
-      )}
-      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-transparent">
-        <div className="hero-bg-animation" />
-        <div className="container px-4 pt-10 pb-6 md:pt-16 md:pb-12 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
-            <div className="hero-animate will-change-transform">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
-                Quick, tasty meals from your campus canteens
-              </h1>
-              <p className="mt-3 md:mt-4 text-muted-foreground text-sm md:text-base max-w-xl">
-                Discover popular items, browse categories, and order in seconds. Fresh, fast, and right around the corner.
-              </p>
-              <motion.div
-                className="mt-6 flex items-center gap-3"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
-              >
-                <Link href="/canteens" passHref>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="inline-flex rounded-md bg-primary px-5 py-2.5 text-white text-sm font-medium shadow-lg shadow-primary/20"
-                  >
-                    Browse Canteens
-                  </motion.button>
-                </Link>
-                <Link href="#popular" passHref>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="inline-flex rounded-md px-5 py-2.5 text-sm font-medium border bg-card hover:bg-muted"
-                  >
-                    Explore Popular
-                  </motion.button>
-                </Link>
-              </motion.div>
-            </div>
-            <div className="md:pl-6">
-              <motion.div
-                className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:overflow-visible"
-                initial="hidden"
-                animate="visible"
-                variants={{
-                  visible: {
-                    transition: { staggerChildren: 0.1, delayChildren: 0.5 },
-                  },
-                }}
-              >
-                {/* Limited Time Offer card to keep the section balanced and attractive */}
+        {/* Static, clean hero without parallax/animations */}
+        {/* Maintenance banner */}
+        {typeof window !== "undefined" && (
+          <MaintenanceBanner />
+        )}
+        <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-transparent">
+          <div className="hero-bg-animation" />
+          <div className="container px-4 pt-10 pb-6 md:pt-16 md:pb-12 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-center">
+              <div className="hero-animate will-change-transform">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+                  Quick, tasty meals from your campus canteens
+                </h1>
+                <p className="mt-3 md:mt-4 text-muted-foreground text-sm md:text-base max-w-xl">
+                  Discover popular items, browse categories, and order in seconds. Fresh, fast, and right around the corner.
+                </p>
                 <motion.div
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-                  className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
-                >
-                  <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-br from-primary/10 to-transparent">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center" aria-hidden="true">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
-                      </svg>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold leading-tight clamp-2">Limited-time campus specials</p>
-                      <p className="text-[11px] text-muted-foreground clamp-2">Hot picks, fresh deals — updated weekly. Don’t miss out.</p>
-                    </div>
-                  </div>
-                  <div className="p-3 pt-2 flex items-center justify-between">
-                    <Badge variant="secondary" className="uppercase tracking-wide">Limited Time</Badge>
-                    <Link href="#popular" passHref>
-                      <button className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs sm:text-sm hover:bg-secondary">
-                        Shop now
-                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M5 12h14"/>
-                          <path d="M12 5l7 7-7 7"/>
-                        </svg>
-                      </button>
-                    </Link>
-                  </div>
-                </motion.div>
-
-                {/* Coupon: Waive Gateway Charge with GLUG */}
-                <motion.div
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-                  className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
-                >
-                  <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-br from-accent/20 to-transparent">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                      <Utensils className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold leading-tight clamp-2">No Gateway Fee with GLUG</p>
-                      <p className="text-[11px] text-muted-foreground clamp-2">
-                        Apply GLUG at checkout to waive the payment gateway charge on your order. Works with other coupons where applicable.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-3 pt-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <code className="rounded bg-muted px-2.5 py-1 text-xs sm:text-sm font-mono font-bold">GLUG</code>
-                      <button
-                        onClick={() => copyCoupon("GLUG", 300)}
-                        className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs sm:text-sm hover:bg-secondary"
-                        aria-label="Copy coupon GLUG"
-                      >
-                        {copiedOffer === 300 ? (<><Check className="h-4 w-4 text-green-500" />Copied</>) : (<><Copy className="h-4 w-4" />Copy</>)}
-                      </button>
-                    </div>
-                    <Dialog>
-                      <DialogTrigger
-                        className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs hover:bg-secondary"
-                        aria-label="View details"
-                      >
-                        <Info className="h-3 w-3" />
-                        <span className="hidden md:inline">Details</span>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Waive Gateway Charge with GLUG</DialogTitle>
-                          <DialogDescription>
-                            Enter <strong>GLUG</strong> at checkout to remove the payment gateway charge from your order.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="text-sm space-y-2">
-                          <ul className="list-disc pl-5 space-y-1">
-                            <li>Applies once per order; the full gateway fee is waived.</li>
-                            <li>Can be combined with other coupons where applicable.</li>
-                            <li>Valid for a limited time; terms may change without notice.</li>
-                          </ul>
-                          <p className="text-xs text-muted-foreground">Review your cart to confirm the waiver before payment.</p>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </motion.div>
-              </motion.div>
-              {/* Students' favorites -> scroll to Popular Items (kept as-is, outside scroller) */}
-              <Link href="#popular" className="block mt-3" aria-label="Go to Students’ favorites (Popular Items)">
-                <motion.div
+                  className="mt-6 flex items-center gap-3"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="rounded-xl border p-4 bg-card/60 backdrop-blur-sm flex items-center justify-between"
+                  transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center" aria-hidden="true">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Students’ favorites</p>
-                      <p className="text-xs text-muted-foreground">Tap to view popular items</p>
-                    </div>
-                  </div>
-                  <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M5 12h14"/>
-                    <path d="M12 5l7 7-7 7"/>
-                  </svg>
+                  <Link href="/canteens" passHref>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-flex rounded-md bg-primary px-5 py-2.5 text-white text-sm font-medium shadow-lg shadow-primary/20"
+                    >
+                      Browse Canteens
+                    </motion.button>
+                  </Link>
+                  <Link href="#popular" passHref>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-flex rounded-md px-5 py-2.5 text-sm font-medium border bg-card hover:bg-muted"
+                    >
+                      Explore Popular
+                    </motion.button>
+                  </Link>
                 </motion.div>
-              </Link>
+              </div>
+              <div className="md:pl-6">
+                <motion.div
+                  className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory sm:grid sm:grid-cols-2 sm:overflow-visible"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    visible: {
+                      transition: { staggerChildren: 0.1, delayChildren: 0.5 },
+                    },
+                  }}
+                >
+                  {/* Limited Time Offer card to keep the section balanced and attractive */}
+                  <motion.div
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                    className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
+                  >
+                    <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-br from-primary/10 to-transparent">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold leading-tight clamp-2">Limited-time campus specials</p>
+                        <p className="text-[11px] text-muted-foreground clamp-2">Hot picks, fresh deals — updated weekly. Don’t miss out.</p>
+                      </div>
+                    </div>
+                    <div className="p-3 pt-2 flex items-center justify-between">
+                      <Badge variant="secondary" className="uppercase tracking-wide">Limited Time</Badge>
+                      <Link href="#popular" passHref>
+                        <button className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs sm:text-sm hover:bg-secondary">
+                          Shop now
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M5 12h14" />
+                            <path d="M12 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </Link>
+                    </div>
+                  </motion.div>
+
+                  {/* Coupon: Waive Gateway Charge with GLUG */}
+                  <motion.div
+                    variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                    className="rounded-xl border bg-card/60 backdrop-blur-sm overflow-hidden snap-start min-w-[85%] sm:min-w-0"
+                  >
+                    <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-br from-accent/20 to-transparent">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                        <Utensils className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold leading-tight clamp-2">No Gateway Fee with GLUG</p>
+                        <p className="text-[11px] text-muted-foreground clamp-2">
+                          Apply GLUG at checkout to waive the payment gateway charge on your order. Works with other coupons where applicable.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-3 pt-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <code className="rounded bg-muted px-2.5 py-1 text-xs sm:text-sm font-mono font-bold">GLUG</code>
+                        <button
+                          onClick={() => copyCoupon("GLUG", 300)}
+                          className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs sm:text-sm hover:bg-secondary"
+                          aria-label="Copy coupon GLUG"
+                        >
+                          {copiedOffer === 300 ? (<><Check className="h-4 w-4 text-green-500" />Copied</>) : (<><Copy className="h-4 w-4" />Copy</>)}
+                        </button>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger
+                          className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs hover:bg-secondary"
+                          aria-label="View details"
+                        >
+                          <Info className="h-3 w-3" />
+                          <span className="hidden md:inline">Details</span>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Waive Gateway Charge with GLUG</DialogTitle>
+                            <DialogDescription>
+                              Enter <strong>GLUG</strong> at checkout to remove the payment gateway charge from your order.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="text-sm space-y-2">
+                            <ul className="list-disc pl-5 space-y-1">
+                              <li>Applies once per order; the full gateway fee is waived.</li>
+                              <li>Can be combined with other coupons where applicable.</li>
+                              <li>Valid for a limited time; terms may change without notice.</li>
+                            </ul>
+                            <p className="text-xs text-muted-foreground">Review your cart to confirm the waiver before payment.</p>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </motion.div>
+                </motion.div>
+                {/* Students' favorites -> scroll to Popular Items (kept as-is, outside scroller) */}
+                <Link href="#popular" className="block mt-3" aria-label="Go to Students’ favorites (Popular Items)">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="rounded-xl border p-4 bg-card/60 backdrop-blur-sm flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Students’ favorites</p>
+                        <p className="text-xs text-muted-foreground">Tap to view popular items</p>
+                      </div>
+                    </div>
+                    <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M5 12h14" />
+                      <path d="M12 5l7 7-7 7" />
+                    </svg>
+                  </motion.div>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
 
 
-  <div className="container px-4 py-6 [content-visibility:auto] [contain-intrinsic-size:1000px]">
-        <div className="md:hidden mb-6 flex items-center gap-2">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search for food..." />
-          <ThemeToggle />
-        </div>
+        <div className="container px-4 py-6 [content-visibility:auto] [contain-intrinsic-size:1000px]">
+          <div className="md:hidden mb-6 flex items-center gap-2">
+            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search for food..." />
+            <ThemeToggle />
+          </div>
 
-  {/* Inline results removed; suggestions appear in the search dropdown only */}
+          {/* Inline results removed; suggestions appear in the search dropdown only */}
 
-  {/* Always show regular content; search suggestions live in the dropdown */}
+          {/* Always show regular content; search suggestions live in the dropdown */}
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -800,7 +800,7 @@ export default function Home() {
                       </motion.div>
                     </button>
                   </div>
-                  
+
                 </>
               )}
             </motion.section>
@@ -815,18 +815,18 @@ export default function Home() {
               <CanteensSection canteens={apiCanteens} />
             </section>
           </motion.div>
-        
-      </div>
 
-      <Footer />
-      <BottomNavigation />
-  {isAuthenticated && <CartIcon />}
-    </main>
-  {(isLoading || homeLoading) && (
-      <div className="fixed inset-0 z-50 bg-background">
-        <LoadingScreen />
-      </div>
-    )}
+        </div>
+
+        <Footer />
+        <BottomNavigation />
+        {isAuthenticated && <CartIcon />}
+      </main>
+      {(isLoading || homeLoading) && (
+        <div className="fixed inset-0 z-50 bg-background">
+          <LoadingScreen />
+        </div>
+      )}
     </>
   )
 }

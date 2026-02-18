@@ -234,10 +234,14 @@ export default function BootcampPage() {
     }
 
     // On mount: check if returning from payment with pending registration
+    // We only auto-save if BOTH bootcamp_registration AND bootcamp_payment_initiated exist.
+    // The payment_initiated flag is set right before Cashfree redirect, so it only exists
+    // if the user was actually sent to the payment gateway.
     useEffect(() => {
         if (!mounted) return
         const pendingRaw = sessionStorage.getItem("bootcamp_registration")
-        if (!pendingRaw) return
+        const paymentInitiated = sessionStorage.getItem("bootcamp_payment_initiated")
+        if (!pendingRaw || !paymentInitiated) return
 
             // We're back from payment — save the registration
             ; (async () => {
@@ -252,6 +256,7 @@ export default function BootcampPage() {
                     const data = await res.json()
                     if (res.ok && data.code === 1) {
                         sessionStorage.removeItem("bootcamp_registration")
+                        sessionStorage.removeItem("bootcamp_payment_initiated")
                         // Restore form state for success screen
                         setName(registrationData.name || "")
                         setIdNumber(registrationData.idNumber || "")
@@ -264,15 +269,21 @@ export default function BootcampPage() {
                     } else if (res.status === 409) {
                         // Already registered — clear pending and show success
                         sessionStorage.removeItem("bootcamp_registration")
+                        sessionStorage.removeItem("bootcamp_payment_initiated")
                         setName(registrationData.name || "")
                         setIdNumber(registrationData.idNumber || "")
                         setAccommodation(registrationData.accommodation || "")
                         setIsSuccess(true)
                         toast({ title: "Already Registered", description: "You're already registered for the bootcamp." })
                     } else {
+                        // Payment might have failed — clear flags so user can retry
+                        sessionStorage.removeItem("bootcamp_registration")
+                        sessionStorage.removeItem("bootcamp_payment_initiated")
                         toast({ title: "Registration issue", description: data.message || "Could not save registration. Please contact support.", variant: "destructive" })
                     }
                 } catch {
+                    sessionStorage.removeItem("bootcamp_registration")
+                    sessionStorage.removeItem("bootcamp_payment_initiated")
                     toast({ title: "Error", description: "Failed to finalize registration. Please try again.", variant: "destructive" })
                 }
             })()
@@ -387,28 +398,36 @@ export default function BootcampPage() {
                 // Cashfree-specific handling (matching payment page logic exactly)
                 if (CASHFREE_ENABLED && (provider === "cashfree" || !!sessionId)) {
                     if (webLink && typeof window !== "undefined") {
+                        // Set flag ONLY right before actual redirect
+                        sessionStorage.setItem("bootcamp_payment_initiated", "true")
                         window.location.href = webLink
                         return
                     }
                     if (sessionId) {
                         try {
+                            sessionStorage.setItem("bootcamp_payment_initiated", "true")
                             await loadCashfreeAndCheckout(sessionId)
                             return
                         } catch (e) {
+                            sessionStorage.removeItem("bootcamp_payment_initiated")
+                            sessionStorage.removeItem("bootcamp_registration")
                             throw new Error("Unable to start Cashfree checkout. Please try again.")
                         }
                     }
-                    // Cashfree expected but no redirect — block, don't silently save
+                    // Cashfree expected but no redirect — clean up and block
+                    sessionStorage.removeItem("bootcamp_registration")
                     throw new Error("Payment gateway did not return a redirect. Please try again or contact support.")
                 }
 
                 // Generic hosted payment page redirect (other gateways)
                 if (webLink && typeof window !== "undefined") {
+                    sessionStorage.setItem("bootcamp_payment_initiated", "true")
                     window.location.href = webLink
                     return
                 }
 
-                // If we reach here, payment wasn't initiated — throw error, don't save
+                // If we reach here, payment wasn't initiated — clean up and error
+                sessionStorage.removeItem("bootcamp_registration")
                 throw new Error("Payment could not be initiated. Please try again or contact support.")
             } else {
                 // Hostler: save immediately (no payment needed)
