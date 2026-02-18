@@ -2,9 +2,11 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 function getBackendBase() {
-  const base = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
+  const base = process.env.API_BASE_URL
   if (!base) {
-    throw new Error("API base URL not configured. Set API_BASE_URL (preferred) or NEXT_PUBLIC_API_URL on the server.")
+    throw new Error(
+      "API_BASE_URL not configured. Set API_BASE_URL in .env.local on the server (e.g., http://188.245.112.188:3000)."
+    )
   }
   return base.replace(/\/$/, "")
 }
@@ -32,7 +34,7 @@ async function proxy(req: Request, ctx: { params: Promise<{ path?: string[] }> }
   if (!["GET", "HEAD"].includes(method.toUpperCase())) {
     try {
       body = await req.arrayBuffer()
-    } catch {}
+    } catch { }
   }
 
   const resp = await fetch(targetUrl, {
