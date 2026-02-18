@@ -10,11 +10,14 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title }: PageHeaderProps) {
   const pathname = usePathname()
-  
+
   // A simple map to determine the back button's destination
   const getBackLink = () => {
     if (pathname.startsWith('/canteen/')) {
       return '/canteens'
+    }
+    if (pathname.startsWith('/bootcamp')) {
+      return '/'
     }
     // Default back to home
     return '/'

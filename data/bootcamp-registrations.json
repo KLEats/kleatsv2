@@ -1,0 +1,31 @@
+[
+  {
+    "timestamp": "2026-02-18T20:23:06.076Z",
+    "name": "Test`",
+    "idNumber": "2300033249",
+    "accommodation": "dayScholar",
+    "transport": "bus_guntur",
+    "teluguSkill": "can_understand",
+    "teamMembers": [
+      {
+        "idNumber": "2300033535",
+        "isLeader": true
+      },
+      {
+        "idNumber": "2300033342",
+        "isLeader": false
+      }
+    ],
+    "paymentStatus": "pending"
+  },
+  {
+    "timestamp": "2026-02-18T20:24:06.936Z",
+    "name": "Test User",
+    "idNumber": "2300030001",
+    "accommodation": "hostler",
+    "transport": "bus_vijayawada",
+    "teluguSkill": "can_read",
+    "teamMembers": [],
+    "paymentStatus": "not_required"
+  }
+]
