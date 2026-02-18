@@ -16,8 +16,8 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-  // Top-aligned viewport: full-width on mobile, top-right on larger screens
-  "fixed top-0 left-0 right-0 z-[100] flex max-h-screen w-full flex-col p-4 md:top-4 md:right-4 md:left-auto md:w-auto md:max-w-[420px]",
+      // Top-aligned viewport: pushed below header (top-16 = 64px), full-width on mobile, top-right on larger screens
+      "fixed top-16 left-0 right-0 z-[100] flex max-h-screen w-full flex-col p-4 md:top-20 md:right-4 md:left-auto md:w-auto md:max-w-[420px]",
       className
     )}
     {...props}
@@ -44,7 +44,7 @@ const toastVariants = cva(
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
-    VariantProps<typeof toastVariants>
+  VariantProps<typeof toastVariants>
 >(({ className, variant, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
