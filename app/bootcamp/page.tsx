@@ -111,6 +111,29 @@ export default function BootcampPage() {
         }
     }, [isAuthenticated, isInitialized, mounted, router])
 
+    // Check if user is already registered
+    useEffect(() => {
+        if (!mounted || !isInitialized || !user?.id) return
+            ; (async () => {
+                try {
+                    const res = await fetch(`/api/bootcamp/register?userId=${encodeURIComponent(user.id)}`)
+                    const data = await res.json()
+                    if (data.found && data.data) {
+                        const reg = data.data
+                        setName(reg.name || "")
+                        setIdNumber(reg.idNumber || "")
+                        setAccommodation(reg.accommodation || "")
+                        setTransport(reg.transport || "")
+                        setTeluguSkill(reg.teluguSkill || "")
+                        setPythonSkill(reg.pythonSkill ? String(reg.pythonSkill) : "")
+                        setIsSuccess(true)
+                    }
+                } catch {
+                    // Silently fail — user can still register if check fails
+                }
+            })()
+    }, [mounted, isInitialized, user?.id])
+
     // Auto-set transport for hostelers
     useEffect(() => {
         if (accommodation === "hostler") {

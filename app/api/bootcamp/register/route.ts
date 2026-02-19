@@ -74,16 +74,27 @@ export async function POST(req: NextRequest) {
       paymentStatus: paymentStatus || (accommodation === "hostler" ? "not_required" : "pending"),
     }
 
-    // Check for duplicate ID number
+    // Check for duplicate ID number or userId
     const existing = readRegistrations()
-    const duplicate = existing.find(
+    const duplicateId = existing.find(
       (r) => r.idNumber === registration.idNumber
     )
-    if (duplicate) {
+    if (duplicateId) {
       return NextResponse.json(
-        { code: 0, message: "This ID number is already registered for the bootcamp." },
+        { code: 0, message: "This ID number is already registered for the bootcamp.", data: duplicateId },
         { status: 409 }
       )
+    }
+    if (registration.userId) {
+      const duplicateUser = existing.find(
+        (r) => r.userId && r.userId === registration.userId
+      )
+      if (duplicateUser) {
+        return NextResponse.json(
+          { code: 0, message: "This account is already registered for the bootcamp.", data: duplicateUser },
+          { status: 409 }
+        )
+      }
     }
 
     existing.push(registration)
@@ -146,10 +157,18 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
-// GET: List all registrations (admin/debug)
-export async function GET() {
+// GET: List all registrations or check by userId
+export async function GET(req: NextRequest) {
   try {
     const data = readRegistrations()
+    const userId = req.nextUrl.searchParams.get("userId")
+    if (userId) {
+      const registration = data.find((r) => r.userId === userId)
+      if (registration) {
+        return NextResponse.json({ code: 1, data: registration, found: true })
+      }
+      return NextResponse.json({ code: 1, data: null, found: false })
+    }
     return NextResponse.json({ code: 1, data, total: data.length })
   } catch (err: any) {
     return NextResponse.json(
