@@ -120,13 +120,17 @@ export default function BootcampPage() {
                     const data = await res.json()
                     if (data.found && data.data) {
                         const reg = data.data
-                        setName(reg.name || "")
-                        setIdNumber(reg.idNumber || "")
-                        setAccommodation(reg.accommodation || "")
-                        setTransport(reg.transport || "")
-                        setTeluguSkill(reg.teluguSkill || "")
-                        setPythonSkill(reg.pythonSkill ? String(reg.pythonSkill) : "")
-                        setIsSuccess(true)
+                        // Only show success if payment is confirmed or not required
+                        if (reg.paymentStatus === "paid" || reg.paymentStatus === "not_required") {
+                            setName(reg.name || "")
+                            setIdNumber(reg.idNumber || "")
+                            setAccommodation(reg.accommodation || "")
+                            setTransport(reg.transport || "")
+                            setTeluguSkill(reg.teluguSkill || "")
+                            setPythonSkill(reg.pythonSkill ? String(reg.pythonSkill) : "")
+                            setIsSuccess(true)
+                        }
+                        // If status is "pending", let the user see the form to retry payment
                     }
                 } catch {
                     // Silently fail — user can still register if check fails
@@ -389,12 +393,16 @@ export default function BootcampPage() {
                 const preRegData = await preRegRes.json()
                 console.log("[Bootcamp] Pre-registration response:", preRegRes.status, preRegData)
                 if (preRegRes.status === 409) {
-                    // Already registered — show success
-                    setIsSuccess(true)
-                    toast({ title: "Already Registered", description: "You're already registered for the bootcamp." })
-                    return
+                    // Already registered — check payment status
+                    if (preRegData.data?.paymentStatus === "paid" || preRegData.data?.paymentStatus === "not_required") {
+                        setIsSuccess(true)
+                        toast({ title: "Already Registered", description: "You're already registered for the bootcamp." })
+                        return
+                    }
+                    // Payment still pending — proceed to payment flow below
+                    console.log("[Bootcamp] Existing pending registration found, proceeding to payment")
                 }
-                if (!preRegRes.ok || preRegData.code !== 1) {
+                if (preRegRes.status !== 409 && (!preRegRes.ok || preRegData.code !== 1)) {
                     throw new Error(preRegData.message || "Registration failed")
                 }
 
