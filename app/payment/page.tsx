@@ -135,6 +135,16 @@ export default function PaymentPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Auto-apply GLUG for bootcamp canteen orders
+  const BOOTCAMP_CID = process.env.NEXT_PUBLIC_BOOTCAMP_CANTEEN_ID
+  useEffect(() => {
+    if (!BOOTCAMP_CID) return
+    const isBootcamp = items.some((it: any) => String((it as any).canteenId) === String(BOOTCAMP_CID))
+    if (isBootcamp && !coupons.includes("GLUG")) {
+      setCoupons((prev) => Array.from(new Set([...prev, "GLUG"])))
+    }
+  }, [items, BOOTCAMP_CID]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const formatMinutesFromNow = (mins: number) => {
     const t = new Date(Date.now() + mins * 60000)
     const h = t.getHours()
@@ -148,8 +158,8 @@ export default function PaymentPage() {
   const displayPickupTime = pickupMode === "asap"
     ? "As soon as possible"
     : pickupMode === "slot"
-    ? selectedSlot || ""
-    : formatMinutesFromNow(customMinutes)
+      ? selectedSlot || ""
+      : formatMinutesFromNow(customMinutes)
 
   // Whether any item has packaging selected (affects label and order type)
   const hasPackaging = items.some((it) => !!it.packaging)
@@ -164,7 +174,7 @@ export default function PaymentPage() {
     if (!token) return
     try {
       await fetch(`${baseUrl}/api/user/cart/clearCart`, { method: "DELETE", headers: { Authorization: token } })
-    } catch {}
+    } catch { }
   }
 
   const addBackendToCart = async (itemId: number, quantity = 1) => {
@@ -173,7 +183,7 @@ export default function PaymentPage() {
     try {
       const url = `${baseUrl}/api/user/cart/addToCart?id=${encodeURIComponent(String(itemId))}&quantity=${encodeURIComponent(String(quantity))}`
       await fetch(url, { method: "GET", headers: { Authorization: token }, cache: "no-store" })
-    } catch {}
+    } catch { }
   }
 
   const handlePayment = () => {
@@ -192,162 +202,162 @@ export default function PaymentPage() {
       })
     }, 200)
 
-    // Simulate payment completion plus backend order placement
-    ;(async () => {
-  try {
-        // Progress for UX
-        await new Promise((r) => setTimeout(r, 1800))
-        clearInterval(interval)
-        setProgress(100)
+      // Simulate payment completion plus backend order placement
+      ; (async () => {
+        try {
+          // Progress for UX
+          await new Promise((r) => setTimeout(r, 1800))
+          clearInterval(interval)
+          setProgress(100)
 
-        // Build deliveryTime from chosen pickup option
-        let deliveryTime = ""
-        if (pickupMode === "asap") {
-          // Use current time for ASAP
-          const now = new Date()
-          const hh = String(now.getHours()).padStart(2, "0")
-          const mm = String(now.getMinutes()).padStart(2, "0")
-          deliveryTime = `${hh}:${mm}`
-        } else if (pickupMode === "slot") {
-          // selectedSlot already formatted like 03:15 PM; convert to 24h HH:mm
-          try {
-            const match = selectedSlot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
-            if (match) {
-              let h = parseInt(match[1], 10)
-              const m = match[2]
-              const ampm = match[3].toUpperCase()
-              if (ampm === "PM" && h !== 12) h += 12
-              if (ampm === "AM" && h === 12) h = 0
-              deliveryTime = `${String(h).padStart(2, "0")}:${m}`
-            }
-          } catch {}
-        } else {
-          // custom minutes from now
-          const t = new Date(Date.now() + customMinutes * 60000)
-          const hh = String(t.getHours()).padStart(2, "0")
-          const mm = String(t.getMinutes()).padStart(2, "0")
-          deliveryTime = `${hh}:${mm}`
-        }
-
-        // Ensure backend cart mirrors local cart for this user
-        const token = getToken()
-        if (!baseUrl) {
-          throw new Error("Missing NEXT_PUBLIC_API_URL; cannot reach backend.")
-        }
-        if (token) {
-          try {
-            // push local items
-            await clearBackendCart()
-            for (const it of items) {
-              await addBackendToCart(it.id, it.quantity)
-            }
-          } catch {}
-
-          // Determine orderType based on packaging selection
-          const isPackagingSelected = items.some((it) => !!it.packaging)
-          // Updated: orderType matches API contract: pickup | dinein
-          const orderType = isPackagingSelected ? "pickup" : "dinein"
-          const gateway = "cashfree"
-
-          const res = await fetch(`${baseUrl}/api/User/order/placeOrder`, {
-            method: "POST",
-            headers: {
-              Authorization: token,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ orderType, deliveryTime, coupons, gateway }),
-          })
-          if (!res.ok) {
-            const errText = await res.text().catch(() => "")
-            throw new Error(`placeOrder failed (${res.status}) ${errText}`)
-          }
-          try {
-            const data = await res.json()
-
-            // If backend indicates failure (even with HTTP 200), stop and alert the user
-            const apiCode = typeof data?.code === "number" ? data.code : 1
-            if (apiCode !== 1) {
-              const topMsg = (data?.message as string) || "Some items are unavailable or not within the allowed time."
-              // Collect up to two item-specific messages if provided
-              const details: string[] = []
-              const cartArr: any[] = Array.isArray(data?.cart) ? data.cart : []
-              for (const entry of cartArr) {
-                if (entry?.message) details.push(String(entry.message))
-                if (details.length >= 2) break
+          // Build deliveryTime from chosen pickup option
+          let deliveryTime = ""
+          if (pickupMode === "asap") {
+            // Use current time for ASAP
+            const now = new Date()
+            const hh = String(now.getHours()).padStart(2, "0")
+            const mm = String(now.getMinutes()).padStart(2, "0")
+            deliveryTime = `${hh}:${mm}`
+          } else if (pickupMode === "slot") {
+            // selectedSlot already formatted like 03:15 PM; convert to 24h HH:mm
+            try {
+              const match = selectedSlot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+              if (match) {
+                let h = parseInt(match[1], 10)
+                const m = match[2]
+                const ampm = match[3].toUpperCase()
+                if (ampm === "PM" && h !== 12) h += 12
+                if (ampm === "AM" && h === 12) h = 0
+                deliveryTime = `${String(h).padStart(2, "0")}:${m}`
               }
-              const desc = details.length > 0 ? `${topMsg} ${details.join(" ")}` : topMsg
-              toast({ title: "Cannot place order", description: desc, variant: "destructive" })
-              setIsProcessing(false)
-              return
+            } catch { }
+          } else {
+            // custom minutes from now
+            const t = new Date(Date.now() + customMinutes * 60000)
+            const hh = String(t.getHours()).padStart(2, "0")
+            const mm = String(t.getMinutes()).padStart(2, "0")
+            deliveryTime = `${hh}:${mm}`
+          }
+
+          // Ensure backend cart mirrors local cart for this user
+          const token = getToken()
+          if (!baseUrl) {
+            throw new Error("Missing NEXT_PUBLIC_API_URL; cannot reach backend.")
+          }
+          if (token) {
+            try {
+              // push local items
+              await clearBackendCart()
+              for (const it of items) {
+                await addBackendToCart(it.id, it.quantity)
+              }
+            } catch { }
+
+            // Determine orderType based on packaging selection
+            const isPackagingSelected = items.some((it) => !!it.packaging)
+            // Updated: orderType matches API contract: pickup | dinein
+            const orderType = isPackagingSelected ? "pickup" : "dinein"
+            const gateway = "cashfree"
+
+            const res = await fetch(`${baseUrl}/api/User/order/placeOrder`, {
+              method: "POST",
+              headers: {
+                Authorization: token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ orderType, deliveryTime, coupons, gateway }),
+            })
+            if (!res.ok) {
+              const errText = await res.text().catch(() => "")
+              throw new Error(`placeOrder failed (${res.status}) ${errText}`)
             }
+            try {
+              const data = await res.json()
 
-            // Extract provider and links once
-            const provider = (data?.provider || data?.gateway || "").toString().toLowerCase()
-            const webLink: string | undefined = data?.payment_links?.web || data?.payment_link || data?.redirect_url || data?.raw?.redirect_url
-            const sessionId: string | undefined = data?.raw?.payment_session_id || data?.payment_session_id
-
-            // Cashfree-specific handling when enabled
-            if (CASHFREE_ENABLED && (provider === "cashfree" || !!sessionId)) {
-              if (webLink && typeof window !== "undefined") {
-                window.location.href = webLink
+              // If backend indicates failure (even with HTTP 200), stop and alert the user
+              const apiCode = typeof data?.code === "number" ? data.code : 1
+              if (apiCode !== 1) {
+                const topMsg = (data?.message as string) || "Some items are unavailable or not within the allowed time."
+                // Collect up to two item-specific messages if provided
+                const details: string[] = []
+                const cartArr: any[] = Array.isArray(data?.cart) ? data.cart : []
+                for (const entry of cartArr) {
+                  if (entry?.message) details.push(String(entry.message))
+                  if (details.length >= 2) break
+                }
+                const desc = details.length > 0 ? `${topMsg} ${details.join(" ")}` : topMsg
+                toast({ title: "Cannot place order", description: desc, variant: "destructive" })
+                setIsProcessing(false)
                 return
               }
-              if (sessionId) {
-                try {
-                  await loadCashfreeAndCheckout(sessionId)
+
+              // Extract provider and links once
+              const provider = (data?.provider || data?.gateway || "").toString().toLowerCase()
+              const webLink: string | undefined = data?.payment_links?.web || data?.payment_link || data?.redirect_url || data?.raw?.redirect_url
+              const sessionId: string | undefined = data?.raw?.payment_session_id || data?.payment_session_id
+
+              // Cashfree-specific handling when enabled
+              if (CASHFREE_ENABLED && (provider === "cashfree" || !!sessionId)) {
+                if (webLink && typeof window !== "undefined") {
+                  window.location.href = webLink
                   return
-                } catch (e) {
-                  throw new Error("Unable to start Cashfree checkout. Please try again or contact support.")
                 }
+                if (sessionId) {
+                  try {
+                    await loadCashfreeAndCheckout(sessionId)
+                    return
+                  } catch (e) {
+                    throw new Error("Unable to start Cashfree checkout. Please try again or contact support.")
+                  }
+                }
+                // If Cashfree expected but we couldn't start, block local success
+                throw new Error("Cashfree is enabled but no redirect/session was provided.")
               }
-              // If Cashfree expected but we couldn't start, block local success
-              throw new Error("Cashfree is enabled but no redirect/session was provided.")
-            }
 
-            // Generic hosted payment page redirect (works for other gateways like HDFC)
-            if ((data?.payment_links?.web as string | undefined) && typeof window !== "undefined") {
-              window.location.href = data.payment_links.web
-              return
-            }
-          } catch {}
-        } else {
-          throw new Error("Missing auth token; please log in again.")
+              // Generic hosted payment page redirect (works for other gateways like HDFC)
+              if ((data?.payment_links?.web as string | undefined) && typeof window !== "undefined") {
+                window.location.href = data.payment_links.web
+                return
+              }
+            } catch { }
+          } else {
+            throw new Error("Missing auth token; please log in again.")
+          }
+
+          // Create local order record for tracking (frontend tip shown, ignore in API)
+          const orderId = `ORD${Math.floor(100000 + Math.random() * 900000)}`
+          const now = new Date()
+          const estimatedReadyTime = new Date(now.getTime() + 20 * 60000)
+          const canteenId = ""
+          addOrder({
+            id: orderId,
+            items: [...items],
+            totalAmount,
+            tipAmount,
+            paymentMethod: "Online",
+            status: "Preparing",
+            canteen: canteenName || "Multiple",
+            canteenId,
+            orderTime: now.toISOString(),
+            pickupTime: displayPickupTime,
+            estimatedReadyTime: estimatedReadyTime.toISOString(),
+            userId: user.id,
+            userName: user.name,
+          })
+
+          clearCart()
+          setPaymentSuccess(true)
+          toast({ title: "Payment Successful!", description: "Your order has been placed successfully." })
+        } catch (e: any) {
+          clearInterval(interval)
+          setIsProcessing(false)
+          toast({
+            title: "Payment failed",
+            description: e?.message || "Please try again.",
+            variant: "destructive",
+          })
         }
-
-        // Create local order record for tracking (frontend tip shown, ignore in API)
-        const orderId = `ORD${Math.floor(100000 + Math.random() * 900000)}`
-        const now = new Date()
-        const estimatedReadyTime = new Date(now.getTime() + 20 * 60000)
-        const canteenId = ""
-        addOrder({
-          id: orderId,
-          items: [...items],
-          totalAmount,
-          tipAmount,
-          paymentMethod: "Online",
-          status: "Preparing",
-          canteen: canteenName || "Multiple",
-          canteenId,
-          orderTime: now.toISOString(),
-          pickupTime: displayPickupTime,
-          estimatedReadyTime: estimatedReadyTime.toISOString(),
-          userId: user.id,
-          userName: user.name,
-        })
-
-        clearCart()
-        setPaymentSuccess(true)
-        toast({ title: "Payment Successful!", description: "Your order has been placed successfully." })
-      } catch (e: any) {
-        clearInterval(interval)
-        setIsProcessing(false)
-        toast({
-          title: "Payment failed",
-          description: e?.message || "Please try again.",
-          variant: "destructive",
-        })
-      }
-    })()
+      })()
   }
 
   if (paymentSuccess) {
@@ -389,7 +399,7 @@ export default function PaymentPage() {
         <Link href="/cart" className="mr-2">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-  <h1 className="text-xl font-bold">Checkout</h1>
+        <h1 className="text-xl font-bold">Checkout</h1>
       </div>
 
       <div className="container px-4 py-6">

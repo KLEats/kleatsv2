@@ -36,7 +36,7 @@ export default function CartPage() {
       localStorage.setItem("kleats_schedule_mode", pickupMode)
       if (pickupMode === "slot") localStorage.setItem("kleats_schedule_slot", selectedSlot || "")
       if (pickupMode === "custom") localStorage.setItem("kleats_schedule_mins", String(customMinutes))
-    } catch {}
+    } catch { }
   }, [pickupMode, selectedSlot, customMinutes])
   // Allow scheduling up to 5 hours (300 minutes) ahead
   const MAX_AHEAD_MINUTES = 300
@@ -48,6 +48,19 @@ export default function CartPage() {
   const [celebrate, setCelebrate] = useState(false)
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
   const [canteenIdMap, setCanteenIdMap] = useState<Record<number, number | undefined>>({})
+
+  // Auto-apply GLUG coupon when ordering from the bootcamp canteen
+  const BOOTCAMP_CID = process.env.NEXT_PUBLIC_BOOTCAMP_CANTEEN_ID
+  useEffect(() => {
+    if (!BOOTCAMP_CID) return
+    const isBootcamp = items.some((it: any) => {
+      const cid = (it as any).canteenId ?? canteenIdMap[it.id]
+      return String(cid) === String(BOOTCAMP_CID)
+    })
+    if (isBootcamp && !appliedCoupons.includes("GLUG")) {
+      setAppliedCoupons((prev) => Array.from(new Set([...prev, "GLUG"])))
+    }
+  }, [items, canteenIdMap, BOOTCAMP_CID]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // FREECANE daily start time check against the selected pickup/dine time (12:00 PM)
   const isAfterFreecaneStart = () => {
@@ -115,7 +128,7 @@ export default function CartPage() {
     qs.set("mode", mode)
     if (mode === "slot") qs.set("time", selectedSlot)
     if (mode === "custom") qs.set("mins", String(customMinutes))
-  if (appliedCoupons.length > 0) qs.set("coupons", appliedCoupons.join(","))
+    if (appliedCoupons.length > 0) qs.set("coupons", appliedCoupons.join(","))
     router.push(`/payment?${qs.toString()}`)
   }
 
@@ -274,10 +287,10 @@ export default function CartPage() {
     (appliedCoupons.includes("FREECANE") && FREECANE_ENABLED && FREECANE_TIME_OK)
   )
     ? items.reduce((sum, it) => {
-        const cat = (it.category || "").toString()
-        const match = ELIGIBLE_FREECANE.some((c) => c.toLowerCase() === cat.toLowerCase())
-        return match ? sum + it.quantity : sum
-      }, 0)
+      const cat = (it.category || "").toString()
+      const match = ELIGIBLE_FREECANE.some((c) => c.toLowerCase() === cat.toLowerCase())
+      return match ? sum + it.quantity : sum
+    }, 0)
     : 0
 
   const toggleCoupon = (code: "GLUG" | "CAMPA4FREE" | "FREECANE") => {
@@ -591,13 +604,13 @@ export default function CartPage() {
                 </div>
 
                 {/* Static coupon chips */}
-        <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   <AnimatePresence>
-          {[
-            ...(CAMPA4FREE_ENABLED && CAMPA_TIME_OK ? ["CAMPA4FREE"] as const : []),
-            ...(FREECANE_ENABLED && FREECANE_TIME_OK ? ["FREECANE"] as const : []),
-            "GLUG" as const,
-          ].map((code, idx) => {
+                    {[
+                      ...(CAMPA4FREE_ENABLED && CAMPA_TIME_OK ? ["CAMPA4FREE"] as const : []),
+                      ...(FREECANE_ENABLED && FREECANE_TIME_OK ? ["FREECANE"] as const : []),
+                      "GLUG" as const,
+                    ].map((code, idx) => {
                       const active = appliedCoupons.includes(code)
                       return (
                         <motion.div
@@ -732,9 +745,9 @@ export default function CartPage() {
                     <span>₹{packagingCost}</span>
                   </div>
                 )}
-        {freebiesCount > 0 && (
+                {freebiesCount > 0 && (
                   <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1"><Gift className="h-4 w-4" /> {appliedCoupons.includes("CAMPA4FREE") ? "Free Campa drink" : "Free Sugarcane"} × {freebiesCount}</span>
+                    <span className="flex items-center gap-1"><Gift className="h-4 w-4" /> {appliedCoupons.includes("CAMPA4FREE") ? "Free Campa drink" : "Free Sugarcane"} × {freebiesCount}</span>
                     <span>₹0</span>
                   </div>
                 )}
@@ -786,7 +799,7 @@ export default function CartPage() {
             </Link>
           </div>
         )}
-  </motion.div>
+      </motion.div>
     </div>
   )
 }
