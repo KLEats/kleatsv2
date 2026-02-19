@@ -781,7 +781,7 @@ export default function BootcampPage() {
                                                             <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                                                             <AlertTitle className="text-amber-800 dark:text-amber-300">Payment Required — ₹150</AlertTitle>
                                                             <AlertDescription className="text-amber-700 dark:text-amber-400">
-                                                                Day scholars need to pay ₹150 for Dinner & Breakfast. You will be redirected to pay after registration.
+                                                                Day scholars need to pay ₹150 for Dinner + Breakfast + Gateway processing charges. You will be redirected to pay after registration.
                                                             </AlertDescription>
                                                         </Alert>
                                                     </motion.div>
