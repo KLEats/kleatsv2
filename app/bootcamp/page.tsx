@@ -401,7 +401,7 @@ export default function BootcampPage() {
                     body: JSON.stringify({
                         orderType: "dinein",
                         deliveryTime,
-                        coupons: [],
+                        coupons: ["GLUG"],
                         gateway: "cashfree",
                     }),
                 })
