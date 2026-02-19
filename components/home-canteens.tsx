@@ -8,6 +8,8 @@ import { LazyMotion, domAnimation, m } from "framer-motion"
 import { Utensils } from "lucide-react"
 import { isOpenNow } from "@/lib/utils"
 
+const BOOTCAMP_CANTEEN_ID = process.env.NEXT_PUBLIC_BOOTCAMP_CANTEEN_ID
+
 export default function CanteensSection({ canteens }: { canteens: any[] }) {
   return (
     <LazyMotion features={domAnimation} strict>
@@ -19,8 +21,9 @@ export default function CanteensSection({ canteens }: { canteens: any[] }) {
           {canteens.map((canteen: any) => {
             const open = isOpenNow(canteen.fromTime, canteen.ToTime)
             const closed = open === false
+            const isBootcamp = BOOTCAMP_CANTEEN_ID && String(canteen.canteenId) === String(BOOTCAMP_CANTEEN_ID)
             return (
-              <Link href={`/canteen/${canteen.canteenId}`} key={canteen.canteenId} className="min-w-[320px] max-w-[320px]" passHref>
+              <Link href={isBootcamp ? "/bootcamp" : `/canteen/${canteen.canteenId}`} key={canteen.canteenId} className="min-w-[320px] max-w-[320px]" passHref>
                 <m.div whileHover={{ y: -5, boxShadow: "0px 10px 20px rgba(0,0,0,0.1)" }} transition={{ type: "spring", stiffness: 300 }} className="h-full">
                   <Card className="overflow-hidden h-full">
                     <CardContent className="p-0">
@@ -71,8 +74,8 @@ export default function CanteensSection({ canteens }: { canteens: any[] }) {
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <span>View All Canteens</span>
                       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M5 12h14"/>
-                        <path d="M12 5l7 7-7 7"/>
+                        <path d="M5 12h14" />
+                        <path d="M12 5l7 7-7 7" />
                       </svg>
                     </div>
                   </div>
