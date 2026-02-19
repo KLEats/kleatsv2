@@ -237,10 +237,10 @@ export default function BootcampPage() {
                     // Find the matching order and check payment status
                     const isPaid = ordersList.some((o: any) => {
                         const oid = String(o.id ?? o.orderId ?? o.OrderId ?? o._id ?? o.pid ?? "")
+                        const txnId = String(o.transactionId ?? o.transaction_id ?? o.cf_order_id ?? "")
                         const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
-                        const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active"]
-                        // Match by stored order ID if we have one
-                        if (storedOrderId && oid === storedOrderId) {
+                        const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active", "confirmed", "order_confirmed"]
+                        if (storedOrderId && (oid === storedOrderId || txnId === storedOrderId)) {
                             return paidStatuses.some(s => status.includes(s))
                         }
                         return false
@@ -250,7 +250,7 @@ export default function BootcampPage() {
                     // (created in the last 10 min) for the bootcamp item is paid
                     const recentPaid = !isPaid && ordersList.some((o: any) => {
                         const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
-                        const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active"]
+                        const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active", "confirmed", "order_confirmed"]
                         const statusOk = paidStatuses.some(s => status.includes(s))
                         if (!statusOk) return false
                         // Check if this order is recent (within last 10 minutes)

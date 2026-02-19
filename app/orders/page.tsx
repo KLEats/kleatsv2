@@ -96,12 +96,13 @@ export default function OrdersPage() {
           const registrationData = JSON.parse(pendingRaw)
 
           // Check if any order is paid (match by stored ID or recent timestamp)
-          const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active"]
+          const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active", "confirmed", "order_confirmed"]
           const isPaid = orders.some((o: any) => {
             const oid = String(o.id ?? o.orderId ?? o.OrderId ?? o._id ?? o.pid ?? "")
+            const txnId = String(o.transactionId ?? o.transaction_id ?? o.cf_order_id ?? "")
             const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
-            if (storedOrderId && oid === storedOrderId) {
-              console.log("[Bootcamp-Orders] Matched order by ID:", oid, "status:", status)
+            if (storedOrderId && (oid === storedOrderId || txnId === storedOrderId)) {
+              console.log("[Bootcamp-Orders] Matched order:", { oid, txnId, status })
               return paidStatuses.some(s => status.includes(s))
             }
             return false
