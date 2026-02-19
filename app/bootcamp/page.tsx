@@ -184,20 +184,99 @@ export default function BootcampPage() {
         await cashfree.checkout({ paymentSessionId, redirectTarget: "_self" })
     }
 
-    // On mount: check if returning from payment with pending registration
-    // We only auto-save if BOTH bootcamp_registration AND bootcamp_payment_initiated exist.
-    // The payment_initiated flag is set right before Cashfree redirect, so it only exists
-    // if the user was actually sent to the payment gateway.
+    // On mount: check if returning from payment with pending registration.
+    // We verify the payment actually went through by checking order status via the backend
+    // before completing the registration.
     useEffect(() => {
         if (!mounted) return
         const pendingRaw = sessionStorage.getItem("bootcamp_registration")
         const paymentInitiated = sessionStorage.getItem("bootcamp_payment_initiated")
         if (!pendingRaw || !paymentInitiated) return
 
-            // We're back from payment — save the registration
+        const storedOrderId = sessionStorage.getItem("bootcamp_order_id") || ""
+
+            // Verify payment before completing registration
             ; (async () => {
                 try {
                     const registrationData = JSON.parse(pendingRaw)
+                    const token = getToken()
+                    if (!token) {
+                        // No auth token — can't verify, clean up and let user retry
+                        sessionStorage.removeItem("bootcamp_registration")
+                        sessionStorage.removeItem("bootcamp_payment_initiated")
+                        sessionStorage.removeItem("bootcamp_order_id")
+                        toast({ title: "Session Expired", description: "Please log in and try again.", variant: "destructive" })
+                        return
+                    }
+
+                    // Call backend to check if the order was actually paid
+                    const ordersRes = await fetch(`${baseUrl}/api/User/order/getOrders?requestOffset=0`, {
+                        method: "GET",
+                        headers: { Authorization: token },
+                        cache: "no-store",
+                    })
+
+                    if (!ordersRes.ok) {
+                        // Can't verify — don't auto-register, let user retry
+                        toast({ title: "Verification failed", description: "Could not verify payment. Please try registering again.", variant: "destructive" })
+                        sessionStorage.removeItem("bootcamp_registration")
+                        sessionStorage.removeItem("bootcamp_payment_initiated")
+                        sessionStorage.removeItem("bootcamp_order_id")
+                        return
+                    }
+
+                    const ordersData = await ordersRes.json()
+                    // Normalise the orders array from various response shapes
+                    let ordersList: any[] = []
+                    if (Array.isArray(ordersData)) ordersList = ordersData
+                    else if (Array.isArray(ordersData?.data)) ordersList = ordersData.data
+                    else if (Array.isArray(ordersData?.data?.items)) ordersList = ordersData.data.items
+                    else if (Array.isArray(ordersData?.items)) ordersList = ordersData.items
+                    else if (Array.isArray(ordersData?.orders)) ordersList = ordersData.orders
+
+                    // Find the matching order and check payment status
+                    const isPaid = ordersList.some((o: any) => {
+                        const oid = String(o.id ?? o.orderId ?? o.OrderId ?? o._id ?? o.pid ?? "")
+                        const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
+                        const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active"]
+                        // Match by stored order ID if we have one
+                        if (storedOrderId && oid === storedOrderId) {
+                            return paidStatuses.some(s => status.includes(s))
+                        }
+                        return false
+                    })
+
+                    // If no storedOrderId or no match found, also check if the most recent order
+                    // (created in the last 10 min) for the bootcamp item is paid
+                    const recentPaid = !isPaid && ordersList.some((o: any) => {
+                        const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
+                        const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active"]
+                        const statusOk = paidStatuses.some(s => status.includes(s))
+                        if (!statusOk) return false
+                        // Check if this order is recent (within last 10 minutes)
+                        const createdAt = o.createdAt ?? o.orderDate ?? o.OrderDate ?? o.orderTime ?? ""
+                        if (!createdAt) return false
+                        try {
+                            const orderTime = new Date(createdAt).getTime()
+                            const tenMinAgo = Date.now() - 10 * 60 * 1000
+                            return orderTime > tenMinAgo
+                        } catch { return false }
+                    })
+
+                    if (!isPaid && !recentPaid) {
+                        // Payment NOT verified — do NOT register
+                        toast({
+                            title: "Payment not completed",
+                            description: "Your payment was not confirmed. Please try registering again.",
+                            variant: "destructive",
+                        })
+                        sessionStorage.removeItem("bootcamp_registration")
+                        sessionStorage.removeItem("bootcamp_payment_initiated")
+                        sessionStorage.removeItem("bootcamp_order_id")
+                        return
+                    }
+
+                    // Payment verified — complete registration
                     registrationData.paymentStatus = "paid"
                     const res = await fetch("/api/bootcamp/register", {
                         method: "POST",
@@ -208,32 +287,33 @@ export default function BootcampPage() {
                     if (res.ok && data.code === 1) {
                         sessionStorage.removeItem("bootcamp_registration")
                         sessionStorage.removeItem("bootcamp_payment_initiated")
-                        // Restore form state for success screen
+                        sessionStorage.removeItem("bootcamp_order_id")
                         setName(registrationData.name || "")
                         setIdNumber(registrationData.idNumber || "")
                         setAccommodation(registrationData.accommodation || "")
                         setTransport(registrationData.transport || "")
                         setTeluguSkill(registrationData.teluguSkill || "")
                         setIsSuccess(true)
-                        toast({ title: "Registration Successful! 🎉", description: "Payment received. You're all set for the bootcamp." })
+                        toast({ title: "Registration Successful! 🎉", description: "Payment verified. You're all set for the bootcamp." })
                     } else if (res.status === 409) {
-                        // Already registered — clear pending and show success
                         sessionStorage.removeItem("bootcamp_registration")
                         sessionStorage.removeItem("bootcamp_payment_initiated")
+                        sessionStorage.removeItem("bootcamp_order_id")
                         setName(registrationData.name || "")
                         setIdNumber(registrationData.idNumber || "")
                         setAccommodation(registrationData.accommodation || "")
                         setIsSuccess(true)
                         toast({ title: "Already Registered", description: "You're already registered for the bootcamp." })
                     } else {
-                        // Payment might have failed — clear flags so user can retry
                         sessionStorage.removeItem("bootcamp_registration")
                         sessionStorage.removeItem("bootcamp_payment_initiated")
+                        sessionStorage.removeItem("bootcamp_order_id")
                         toast({ title: "Registration issue", description: data.message || "Could not save registration. Please contact support.", variant: "destructive" })
                     }
                 } catch {
                     sessionStorage.removeItem("bootcamp_registration")
                     sessionStorage.removeItem("bootcamp_payment_initiated")
+                    sessionStorage.removeItem("bootcamp_order_id")
                     toast({ title: "Error", description: "Failed to finalize registration. Please try again.", variant: "destructive" })
                 }
             })()
@@ -338,12 +418,18 @@ export default function BootcampPage() {
                     throw new Error(msg)
                 }
 
+                // Store order ID so we can verify payment on return
+                const bootcampOrderId = String(orderData?.orderId ?? orderData?.order_id ?? orderData?.id ?? orderData?.cf_order_id ?? orderData?.raw?.order_id ?? "")
+                if (bootcampOrderId) {
+                    sessionStorage.setItem("bootcamp_order_id", bootcampOrderId)
+                }
+
                 // Step 4: Redirect to payment gateway
                 const provider = (orderData?.provider || orderData?.gateway || "").toString().toLowerCase()
                 const webLink: string | undefined = orderData?.payment_links?.web || orderData?.payment_link || orderData?.redirect_url || orderData?.raw?.redirect_url
                 const sessionId: string | undefined = orderData?.raw?.payment_session_id || orderData?.payment_session_id
 
-                console.log("[Bootcamp] placeOrder response:", { provider, webLink: !!webLink, sessionId: !!sessionId, CASHFREE_ENABLED, orderData })
+                console.log("[Bootcamp] placeOrder response:", { provider, webLink: !!webLink, sessionId: !!sessionId, CASHFREE_ENABLED, bootcampOrderId, orderData })
 
                 // Cashfree-specific handling (matching payment page logic exactly)
                 if (CASHFREE_ENABLED && (provider === "cashfree" || !!sessionId)) {
@@ -361,11 +447,13 @@ export default function BootcampPage() {
                         } catch (e) {
                             sessionStorage.removeItem("bootcamp_payment_initiated")
                             sessionStorage.removeItem("bootcamp_registration")
+                            sessionStorage.removeItem("bootcamp_order_id")
                             throw new Error("Unable to start Cashfree checkout. Please try again.")
                         }
                     }
                     // Cashfree expected but no redirect — clean up and block
                     sessionStorage.removeItem("bootcamp_registration")
+                    sessionStorage.removeItem("bootcamp_order_id")
                     throw new Error("Payment gateway did not return a redirect. Please try again or contact support.")
                 }
 
@@ -378,6 +466,7 @@ export default function BootcampPage() {
 
                 // If we reach here, payment wasn't initiated — clean up and error
                 sessionStorage.removeItem("bootcamp_registration")
+                sessionStorage.removeItem("bootcamp_order_id")
                 throw new Error("Payment could not be initiated. Please try again or contact support.")
             } else {
                 // Hostler: save immediately (no payment needed)
