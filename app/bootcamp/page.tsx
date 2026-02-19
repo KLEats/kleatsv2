@@ -57,7 +57,6 @@ const TRANSPORT_OPTIONS = [
     { value: "bus_tenali", label: "Bus — Tenali" },
     { value: "bus_guntur", label: "Bus — Guntur" },
     { value: "own_transport", label: "Own Transport" },
-    { value: "others", label: "Others" },
 ]
 
 const TELUGU_OPTIONS = [
@@ -128,7 +127,7 @@ export default function BootcampPage() {
             case 1:
                 return accommodation !== ""
             case 2:
-                return name.trim().length > 0 && idNumber.trim().length > 0
+                return name.trim().length > 0 && idNumber.trim().length === 10
             case 3:
                 // Telugu + Python required; transport also required for day scholars
                 const skillsOk = teluguSkill !== "" && pythonSkill !== ""
@@ -790,14 +789,14 @@ export default function BootcampPage() {
                                                     id="reg-id"
                                                     value={idNumber}
                                                     onChange={(e) =>
-                                                        setIdNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
+                                                        setIdNumber(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10))
                                                     }
                                                     placeholder="e.g. 2300030001"
                                                     className="h-12 font-mono tracking-wider"
-                                                    maxLength={20}
+                                                    maxLength={10}
                                                 />
                                                 <p className="text-xs text-muted-foreground">
-                                                    Your university ID number
+                                                    Your 10-digit university ID number
                                                 </p>
                                             </div>
                                         </CardContent>
