@@ -64,6 +64,7 @@ export default function CanteensPage() {
   }, [])
 
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
+  const BOOTCAMP_CANTEEN_ID = process.env.NEXT_PUBLIC_BOOTCAMP_CANTEEN_ID || ""
 
   const filteredCanteens = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
@@ -117,7 +118,7 @@ export default function CanteensPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  <Link href={`/canteen/${canteen.canteenId}`}>
+                  <Link href={String(canteen.canteenId) === BOOTCAMP_CANTEEN_ID ? "/bootcamp" : `/canteen/${canteen.canteenId}`}>
                     <Card className="card-hover overflow-hidden">
                       <CardContent className="p-0">
                         <div className="relative h-40">
