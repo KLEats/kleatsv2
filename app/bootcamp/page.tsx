@@ -9,14 +9,10 @@ import {
     ArrowLeft,
     ArrowRight,
     Check,
-    Plus,
-    Trash2,
-    Users,
     User,
     Bus,
     Home,
     Languages,
-    Crown,
     Sparkles,
     AlertTriangle,
     Info,
@@ -33,7 +29,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Badge } from "@/components/ui/badge"
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/hooks/use-auth"
@@ -48,14 +44,12 @@ const STEPS_DAY_SCHOLAR = [
     { id: 1, title: "Accommodation", icon: Home },
     { id: 2, title: "Personal Info", icon: User },
     { id: 3, title: "Transport & Skills", icon: Bus },
-    { id: 4, title: "Team", icon: Users },
 ]
 
 const STEPS_HOSTLER = [
     { id: 1, title: "Accommodation", icon: Home },
     { id: 2, title: "Personal Info", icon: User },
-    { id: 3, title: "Telugu Skill", icon: Languages },
-    { id: 4, title: "Team", icon: Users },
+    { id: 3, title: "Skills", icon: Languages },
 ]
 
 const TRANSPORT_OPTIONS = [
@@ -67,16 +61,13 @@ const TRANSPORT_OPTIONS = [
 ]
 
 const TELUGU_OPTIONS = [
-    { value: "can_read", label: "Can Read" },
-    { value: "can_write", label: "Can Write" },
-    { value: "can_understand", label: "Can Understand" },
+    { value: "can_read_write", label: "Can Read & Write" },
+    { value: "can_only_read", label: "Can Only Read" },
+    { value: "can_only_understand", label: "Can Only Understand" },
     { value: "cannot_understand", label: "Cannot Understand" },
 ]
 
-type TeamMember = {
-    idNumber: string
-    isLeader: boolean
-}
+const PYTHON_LEVELS = [1, 2, 3, 4, 5]
 
 export default function BootcampPage() {
     const { user, isAuthenticated, isInitialized } = useAuth()
@@ -95,8 +86,7 @@ export default function BootcampPage() {
     const isHostler = accommodation === "hostler"
     const steps = isHostler ? STEPS_HOSTLER : STEPS_DAY_SCHOLAR
     const [teluguSkill, setTeluguSkill] = useState("")
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
-    const [newMemberId, setNewMemberId] = useState("")
+    const [pythonSkill, setPythonSkill] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
     const [direction, setDirection] = useState(1) // 1 = forward, -1 = backward
@@ -140,14 +130,13 @@ export default function BootcampPage() {
             case 2:
                 return name.trim().length > 0 && idNumber.trim().length > 0
             case 3:
-                // Hostlers only need Telugu skill (transport auto-set)
-                return isHostler ? teluguSkill !== "" : (transport !== "" && teluguSkill !== "")
-            case 4:
-                return true // team is optional
+                // Telugu + Python required; transport also required for day scholars
+                const skillsOk = teluguSkill !== "" && pythonSkill !== ""
+                return isHostler ? skillsOk : (transport !== "" && skillsOk)
             default:
                 return false
         }
-    }, [step, accommodation, name, idNumber, transport, teluguSkill, isHostler])
+    }, [step, accommodation, name, idNumber, transport, teluguSkill, pythonSkill, isHostler])
 
     const goNext = useCallback(() => {
         if (step < steps.length && canProceed) {
@@ -163,45 +152,7 @@ export default function BootcampPage() {
         }
     }, [step])
 
-    // Team member management
-    const addTeamMember = useCallback(() => {
-        const trimmed = newMemberId.trim().toUpperCase()
-        if (!trimmed) return
-        if (trimmed === idNumber.trim().toUpperCase()) {
-            toast({
-                title: "Invalid",
-                description: "You cannot add your own ID number as a team member.",
-                variant: "destructive",
-            })
-            return
-        }
-        if (teamMembers.some((m) => m.idNumber === trimmed)) {
-            toast({
-                title: "Duplicate",
-                description: "This ID number is already in your team.",
-                variant: "destructive",
-            })
-            return
-        }
-        setTeamMembers((prev) => [
-            ...prev,
-            { idNumber: trimmed, isLeader: false },
-        ])
-        setNewMemberId("")
-    }, [newMemberId, idNumber, teamMembers, toast])
-
-    const removeTeamMember = useCallback((id: string) => {
-        setTeamMembers((prev) => prev.filter((m) => m.idNumber !== id))
-    }, [])
-
-    const toggleLeader = useCallback((id: string) => {
-        setTeamMembers((prev) =>
-            prev.map((m) => ({
-                ...m,
-                isLeader: m.idNumber === id ? !m.isLeader : false,
-            }))
-        )
-    }, [])
+    // (Team management removed — payments are individual)
 
     // Backend API helpers (match existing payment page pattern)
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "")
@@ -263,7 +214,6 @@ export default function BootcampPage() {
                         setAccommodation(registrationData.accommodation || "")
                         setTransport(registrationData.transport || "")
                         setTeluguSkill(registrationData.teluguSkill || "")
-                        setTeamMembers(registrationData.teamMembers || [])
                         setIsSuccess(true)
                         toast({ title: "Registration Successful! 🎉", description: "Payment received. You're all set for the bootcamp." })
                     } else if (res.status === 409) {
@@ -299,7 +249,7 @@ export default function BootcampPage() {
                 accommodation,
                 transport: isHostler ? "hostler" : transport,
                 teluguSkill,
-                teamMembers,
+                pythonSkill: Number(pythonSkill),
                 paymentStatus: isHostler ? "not_required" : "pending",
             }
 
@@ -494,9 +444,7 @@ export default function BootcampPage() {
                             {!isHostler && (
                                 <p><span className="font-medium">Transport:</span> {TRANSPORT_OPTIONS.find((t) => t.value === transport)?.label}</p>
                             )}
-                            {teamMembers.length > 0 && (
-                                <p><span className="font-medium">Team:</span> {teamMembers.map((m) => m.idNumber).join(", ")}</p>
-                            )}
+
                         </div>
                         {accommodation === "hostler" && (
                             <Alert className="mb-6 text-left">
@@ -756,7 +704,7 @@ export default function BootcampPage() {
                                     </>
                                 )}
 
-                                {/* Step 3: Transport & Telugu Skill (or just Telugu for hostelers) */}
+                                {/* Step 3: Skills (Transport for day scholars + Telugu + Python) */}
                                 {step === 3 && (
                                     <>
                                         <CardHeader>
@@ -766,12 +714,12 @@ export default function BootcampPage() {
                                                 ) : (
                                                     <Bus className="h-5 w-5 text-primary" />
                                                 )}
-                                                {isHostler ? "Telugu Proficiency" : "Transport & Language"}
+                                                {isHostler ? "Skills" : "Transport & Skills"}
                                             </CardTitle>
                                             <CardDescription>
                                                 {isHostler
-                                                    ? "How well can you understand Telugu?"
-                                                    : "How are you getting to campus and your Telugu proficiency"}
+                                                    ? "Your Telugu and Python proficiency"
+                                                    : "How you're getting to campus, and your skill levels"}
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent className="space-y-6">
@@ -807,7 +755,7 @@ export default function BootcampPage() {
                                             <div className="space-y-3">
                                                 <Label className="text-base font-semibold flex items-center gap-2">
                                                     <Languages className="h-4 w-4" />
-                                                    Telugu Skill
+                                                    Telugu Proficiency
                                                 </Label>
                                                 <RadioGroup
                                                     value={teluguSkill}
@@ -829,126 +777,37 @@ export default function BootcampPage() {
                                                     ))}
                                                 </RadioGroup>
                                             </div>
-                                        </CardContent>
-                                    </>
-                                )}
 
-                                {/* Step 4: Team */}
-                                {step === 4 && (
-                                    <>
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center gap-2">
-                                                <Users className="h-5 w-5 text-primary" />
-                                                Team Management
-                                            </CardTitle>
-                                            <CardDescription>
-                                                Add your team members' ID numbers. Only the team leader needs to fill this form for the whole team.
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            <Alert className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
-                                                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm">
-                                                    Only the team leader needs to add other members here. Members don't need to fill this section separately.
-                                                </AlertDescription>
-                                            </Alert>
+                                            <Separator />
 
-                                            {/* Your card */}
-                                            <div className="rounded-lg border bg-muted/30 p-3">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold">
-                                                            {name.charAt(0)}
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-medium">{name || "You"}</p>
-                                                            <p className="text-xs text-muted-foreground font-mono">{idNumber || "Your ID"}</p>
-                                                        </div>
-                                                    </div>
-                                                    <Badge variant="secondary" className="gap-1">
-                                                        <Crown className="h-3 w-3" />
-                                                        You
-                                                    </Badge>
-                                                </div>
-                                            </div>
-
-                                            {/* Team members */}
-                                            <AnimatePresence>
-                                                {teamMembers.map((member) => (
-                                                    <motion.div
-                                                        key={member.idNumber}
-                                                        initial={{ opacity: 0, height: 0 }}
-                                                        animate={{ opacity: 1, height: "auto" }}
-                                                        exit={{ opacity: 0, height: 0 }}
-                                                        transition={{ duration: 0.2 }}
-                                                        className="rounded-lg border p-3"
-                                                    >
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-bold">
-                                                                    {member.idNumber.charAt(0)}
-                                                                </div>
-                                                                <p className="text-sm font-mono font-medium">{member.idNumber}</p>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Button
-                                                                    variant={member.isLeader ? "default" : "ghost"}
-                                                                    size="sm"
-                                                                    className="h-8 gap-1 text-xs"
-                                                                    onClick={() => toggleLeader(member.idNumber)}
-                                                                >
-                                                                    <Crown className="h-3 w-3" />
-                                                                    {member.isLeader ? "Leader" : "Set Leader"}
-                                                                </Button>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-8 w-8 text-destructive hover:text-destructive"
-                                                                    onClick={() => removeTeamMember(member.idNumber)}
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    </motion.div>
-                                                ))}
-                                            </AnimatePresence>
-
-                                            {/* Add member input */}
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    value={newMemberId}
-                                                    onChange={(e) =>
-                                                        setNewMemberId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
-                                                    }
-                                                    placeholder="Team member's ID number"
-                                                    className="flex-1 font-mono"
-                                                    maxLength={20}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "Enter") {
-                                                            e.preventDefault()
-                                                            addTeamMember()
-                                                        }
-                                                    }}
-                                                />
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={addTeamMember}
-                                                    disabled={!newMemberId.trim()}
-                                                    className="shrink-0"
+                                            <div className="space-y-3">
+                                                <Label className="text-base font-semibold">Rate your Python programming skills (1-5)</Label>
+                                                <p className="text-sm text-muted-foreground">1 being beginner and 5 being expert</p>
+                                                <RadioGroup
+                                                    value={pythonSkill}
+                                                    onValueChange={setPythonSkill}
+                                                    className="flex gap-2"
                                                 >
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
+                                                    {PYTHON_LEVELS.map((level) => (
+                                                        <label
+                                                            key={level}
+                                                            htmlFor={`python-${level}`}
+                                                            className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl border-2 text-lg font-bold transition-all ${pythonSkill === String(level)
+                                                                ? "border-primary bg-primary text-white shadow-sm"
+                                                                : "border-muted hover:border-muted-foreground/30"
+                                                                }`}
+                                                        >
+                                                            <RadioGroupItem value={String(level)} id={`python-${level}`} className="sr-only" />
+                                                            {level}
+                                                        </label>
+                                                    ))}
+                                                </RadioGroup>
                                             </div>
-                                            <p className="text-xs text-muted-foreground">
-                                                {teamMembers.length === 0
-                                                    ? "No team members added yet. This is optional."
-                                                    : `${teamMembers.length} team member${teamMembers.length > 1 ? "s" : ""} added`}
-                                            </p>
                                         </CardContent>
                                     </>
                                 )}
+
+                                {/* Team step removed — payments are individual */}
 
                                 {/* Navigation Footer */}
                                 <CardFooter className="flex justify-between border-t bg-muted/20 px-6 py-4">
