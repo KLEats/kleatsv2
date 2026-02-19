@@ -78,6 +78,63 @@ export default function OrdersPage() {
     }
   }, [router])
 
+  // Auto-update bootcamp registration payment status if returning from Cashfree payment
+  useEffect(() => {
+    if (loading || orders.length === 0) return
+    const pendingRaw = sessionStorage.getItem("bootcamp_registration")
+    const paymentInitiated = sessionStorage.getItem("bootcamp_payment_initiated")
+    if (!pendingRaw || !paymentInitiated) return
+
+    const storedOrderId = sessionStorage.getItem("bootcamp_order_id") || ""
+
+      ; (async () => {
+        try {
+          const registrationData = JSON.parse(pendingRaw)
+
+          // Check if any order is paid (match by stored ID or recent timestamp)
+          const paidStatuses = ["paid", "completed", "success", "delivered", "preparing", "ready", "active"]
+          const isPaid = orders.some((o: any) => {
+            const oid = String(o.id ?? o.orderId ?? o.OrderId ?? o._id ?? o.pid ?? "")
+            const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
+            if (storedOrderId && oid === storedOrderId) {
+              return paidStatuses.some(s => status.includes(s))
+            }
+            return false
+          })
+
+          const recentPaid = !isPaid && orders.some((o: any) => {
+            const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
+            const statusOk = paidStatuses.some(s => status.includes(s))
+            if (!statusOk) return false
+            const createdAt = o.createdAt ?? o.orderDate ?? o.OrderDate ?? o.orderTime ?? ""
+            if (!createdAt) return false
+            try {
+              return new Date(createdAt).getTime() > Date.now() - 10 * 60 * 1000
+            } catch { return false }
+          })
+
+          if (isPaid || recentPaid) {
+            // Payment verified — update registration to "paid"
+            await fetch("/api/bootcamp/register", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ idNumber: registrationData.idNumber, paymentStatus: "paid" }),
+            })
+          }
+
+          // Clean up sessionStorage regardless (user is now on orders page)
+          sessionStorage.removeItem("bootcamp_registration")
+          sessionStorage.removeItem("bootcamp_payment_initiated")
+          sessionStorage.removeItem("bootcamp_order_id")
+        } catch {
+          // Silent cleanup on error
+          sessionStorage.removeItem("bootcamp_registration")
+          sessionStorage.removeItem("bootcamp_payment_initiated")
+          sessionStorage.removeItem("bootcamp_order_id")
+        }
+      })()
+  }, [loading, orders])
+
   const normalized = useMemo(() => orders.map(normalizeOrder), [orders])
 
   return (
@@ -161,16 +218,16 @@ function normalizeOrder(src: AnyOrder) {
       }, 0)
       const extras = Number(src.parcelPrice ?? src.deliveryFee ?? 0)
       total = Math.max(0, Math.round((itemsTotal + extras) * 100) / 100)
-    } catch {}
+    } catch { }
   }
   const itemsLabel = Array.isArray(rawItems)
     ? rawItems
-        .map((it: any) => {
-          const name = it.name ?? it.itemName ?? it.ItemName ?? it.foodName ?? it.title ?? "Item"
-          const qty = it.quantity ?? it.qty ?? it.Quantity ?? 1
-          return `${name} (x${qty})`
-        })
-        .join(", ")
+      .map((it: any) => {
+        const name = it.name ?? it.itemName ?? it.ItemName ?? it.foodName ?? it.title ?? "Item"
+        const qty = it.quantity ?? it.qty ?? it.Quantity ?? 1
+        return `${name} (x${qty})`
+      })
+      .join(", ")
     : typeof rawItems === "string"
       ? rawItems
       : ""

@@ -5,19 +5,16 @@ import path from "path"
 const DATA_DIR = path.join(process.cwd(), "data")
 const DATA_FILE = path.join(DATA_DIR, "bootcamp-registrations.json")
 
-type TeamMember = {
-  idNumber: string
-  isLeader: boolean
-}
-
 type Registration = {
   timestamp: string
   name: string
+  email: string
+  userId: string
   idNumber: string
   accommodation: "hostler" | "dayScholar"
   transport: string
   teluguSkill: string
-  teamMembers: TeamMember[]
+  pythonSkill: number
   paymentStatus: "pending" | "paid" | "not_required"
 }
 
@@ -38,17 +35,20 @@ function writeRegistrations(data: Registration[]) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8")
 }
 
+// POST: Create a new registration
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
 
     const {
       name,
+      email,
+      userId,
       idNumber,
       accommodation,
       transport,
       teluguSkill,
-      teamMembers,
+      pythonSkill,
       paymentStatus,
     } = body
 
@@ -63,11 +63,13 @@ export async function POST(req: NextRequest) {
     const registration: Registration = {
       timestamp: new Date().toISOString(),
       name: String(name).trim(),
+      email: String(email || "").trim(),
+      userId: String(userId || "").trim(),
       idNumber: String(idNumber).trim().toUpperCase(),
       accommodation,
       transport,
       teluguSkill,
-      teamMembers: Array.isArray(teamMembers) ? teamMembers : [],
+      pythonSkill: Number(pythonSkill) || 0,
       paymentStatus: paymentStatus || (accommodation === "hostler" ? "not_required" : "pending"),
     }
 
@@ -93,6 +95,48 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: any) {
     console.error("Bootcamp registration error:", err)
+    return NextResponse.json(
+      { code: 0, message: err?.message || "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH: Update payment status for an existing registration
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const { idNumber, paymentStatus } = body
+
+    if (!idNumber || !paymentStatus) {
+      return NextResponse.json(
+        { code: 0, message: "idNumber and paymentStatus are required" },
+        { status: 400 }
+      )
+    }
+
+    const registrations = readRegistrations()
+    const idx = registrations.findIndex(
+      (r) => r.idNumber === String(idNumber).trim().toUpperCase()
+    )
+
+    if (idx === -1) {
+      return NextResponse.json(
+        { code: 0, message: "Registration not found" },
+        { status: 404 }
+      )
+    }
+
+    registrations[idx].paymentStatus = paymentStatus
+    writeRegistrations(registrations)
+
+    return NextResponse.json({
+      code: 1,
+      message: "Payment status updated",
+      data: registrations[idx],
+    })
+  } catch (err: any) {
+    console.error("Bootcamp PATCH error:", err)
     return NextResponse.json(
       { code: 0, message: err?.message || "Internal server error" },
       { status: 500 }

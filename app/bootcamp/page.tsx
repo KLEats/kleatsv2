@@ -276,12 +276,11 @@ export default function BootcampPage() {
                         return
                     }
 
-                    // Payment verified — complete registration
-                    registrationData.paymentStatus = "paid"
+                    // Payment verified — update registration status to "paid" via PATCH
                     const res = await fetch("/api/bootcamp/register", {
-                        method: "POST",
+                        method: "PATCH",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(registrationData),
+                        body: JSON.stringify({ idNumber: registrationData.idNumber, paymentStatus: "paid" }),
                     })
                     const data = await res.json()
                     if (res.ok && data.code === 1) {
@@ -295,20 +294,11 @@ export default function BootcampPage() {
                         setTeluguSkill(registrationData.teluguSkill || "")
                         setIsSuccess(true)
                         toast({ title: "Registration Successful! 🎉", description: "Payment verified. You're all set for the bootcamp." })
-                    } else if (res.status === 409) {
-                        sessionStorage.removeItem("bootcamp_registration")
-                        sessionStorage.removeItem("bootcamp_payment_initiated")
-                        sessionStorage.removeItem("bootcamp_order_id")
-                        setName(registrationData.name || "")
-                        setIdNumber(registrationData.idNumber || "")
-                        setAccommodation(registrationData.accommodation || "")
-                        setIsSuccess(true)
-                        toast({ title: "Already Registered", description: "You're already registered for the bootcamp." })
                     } else {
                         sessionStorage.removeItem("bootcamp_registration")
                         sessionStorage.removeItem("bootcamp_payment_initiated")
                         sessionStorage.removeItem("bootcamp_order_id")
-                        toast({ title: "Registration issue", description: data.message || "Could not save registration. Please contact support.", variant: "destructive" })
+                        toast({ title: "Registration issue", description: data.message || "Could not update registration. Please contact support.", variant: "destructive" })
                     }
                 } catch {
                     sessionStorage.removeItem("bootcamp_registration")
@@ -325,6 +315,8 @@ export default function BootcampPage() {
         try {
             const registrationData = {
                 name: name.trim(),
+                email: user?.email || "",
+                userId: user?.id || "",
                 idNumber: idNumber.trim().toUpperCase(),
                 accommodation,
                 transport: isHostler ? "hostler" : transport,
@@ -337,7 +329,6 @@ export default function BootcampPage() {
                 // Day scholar: initiate payment via backend cart + placeOrder
                 const token = getToken()
                 if (!token) {
-                    // Token missing — redirect to login instead of showing error
                     toast({
                         title: "Session Expired",
                         description: "Please log in again to continue registration.",
@@ -365,9 +356,27 @@ export default function BootcampPage() {
                     return
                 }
 
+                // Save registration to backend BEFORE payment (with paymentStatus: "pending")
+                // This ensures data is captured even if Cashfree redirects elsewhere after payment
+                const preRegRes = await fetch("/api/bootcamp/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(registrationData),
+                })
+                const preRegData = await preRegRes.json()
+                if (preRegRes.status === 409) {
+                    // Already registered — show success
+                    setIsSuccess(true)
+                    toast({ title: "Already Registered", description: "You're already registered for the bootcamp." })
+                    return
+                }
+                if (!preRegRes.ok || preRegData.code !== 1) {
+                    throw new Error(preRegData.message || "Registration failed")
+                }
+
                 toast({ title: "Initiating Payment...", description: "Setting up ₹150 payment for Dinner & Breakfast." })
 
-                // Save to sessionStorage BEFORE payment so it persists across redirect
+                // Save to sessionStorage so we can update status on return
                 sessionStorage.setItem("bootcamp_registration", JSON.stringify(registrationData))
 
                 // Step 1: Clear backend cart
