@@ -358,12 +358,14 @@ export default function BootcampPage() {
 
                 // Save registration to backend BEFORE payment (with paymentStatus: "pending")
                 // This ensures data is captured even if Cashfree redirects elsewhere after payment
+                console.log("[Bootcamp] Saving registration before payment:", registrationData)
                 const preRegRes = await fetch("/api/bootcamp/register", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(registrationData),
                 })
                 const preRegData = await preRegRes.json()
+                console.log("[Bootcamp] Pre-registration response:", preRegRes.status, preRegData)
                 if (preRegRes.status === 409) {
                     // Already registered — show success
                     setIsSuccess(true)

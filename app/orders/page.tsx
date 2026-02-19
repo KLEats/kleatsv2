@@ -83,9 +83,13 @@ export default function OrdersPage() {
     if (loading || orders.length === 0) return
     const pendingRaw = sessionStorage.getItem("bootcamp_registration")
     const paymentInitiated = sessionStorage.getItem("bootcamp_payment_initiated")
-    if (!pendingRaw || !paymentInitiated) return
+    if (!pendingRaw || !paymentInitiated) {
+      console.log("[Bootcamp-Orders] No pending bootcamp registration found in sessionStorage", { hasPending: !!pendingRaw, hasPaymentFlag: !!paymentInitiated })
+      return
+    }
 
     const storedOrderId = sessionStorage.getItem("bootcamp_order_id") || ""
+    console.log("[Bootcamp-Orders] Found pending bootcamp registration. storedOrderId:", storedOrderId, "orders count:", orders.length)
 
       ; (async () => {
         try {
@@ -97,6 +101,7 @@ export default function OrdersPage() {
             const oid = String(o.id ?? o.orderId ?? o.OrderId ?? o._id ?? o.pid ?? "")
             const status = String(o.status ?? o.orderStatus ?? o.OrderStatus ?? o.paymentStatus ?? "").toLowerCase()
             if (storedOrderId && oid === storedOrderId) {
+              console.log("[Bootcamp-Orders] Matched order by ID:", oid, "status:", status)
               return paidStatuses.some(s => status.includes(s))
             }
             return false
@@ -109,24 +114,31 @@ export default function OrdersPage() {
             const createdAt = o.createdAt ?? o.orderDate ?? o.OrderDate ?? o.orderTime ?? ""
             if (!createdAt) return false
             try {
-              return new Date(createdAt).getTime() > Date.now() - 10 * 60 * 1000
+              const isRecent = new Date(createdAt).getTime() > Date.now() - 10 * 60 * 1000
+              if (isRecent) console.log("[Bootcamp-Orders] Found recent paid order:", createdAt, "status:", status)
+              return isRecent
             } catch { return false }
           })
 
+          console.log("[Bootcamp-Orders] Payment verification result:", { isPaid, recentPaid })
+
           if (isPaid || recentPaid) {
             // Payment verified — update registration to "paid"
-            await fetch("/api/bootcamp/register", {
+            console.log("[Bootcamp-Orders] Updating registration to paid for:", registrationData.idNumber)
+            const patchRes = await fetch("/api/bootcamp/register", {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ idNumber: registrationData.idNumber, paymentStatus: "paid" }),
             })
+            console.log("[Bootcamp-Orders] PATCH response:", patchRes.status)
           }
 
           // Clean up sessionStorage regardless (user is now on orders page)
           sessionStorage.removeItem("bootcamp_registration")
           sessionStorage.removeItem("bootcamp_payment_initiated")
           sessionStorage.removeItem("bootcamp_order_id")
-        } catch {
+        } catch (e) {
+          console.error("[Bootcamp-Orders] Error:", e)
           // Silent cleanup on error
           sessionStorage.removeItem("bootcamp_registration")
           sessionStorage.removeItem("bootcamp_payment_initiated")

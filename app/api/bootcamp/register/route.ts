@@ -39,6 +39,7 @@ function writeRegistrations(data: Registration[]) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    console.log("[Bootcamp API] POST received:", JSON.stringify(body))
 
     const {
       name,
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
 
     existing.push(registration)
     writeRegistrations(existing)
+    console.log("[Bootcamp API] Registration saved for:", registration.idNumber, "status:", registration.paymentStatus)
 
     return NextResponse.json({
       code: 1,
